@@ -21,3 +21,9 @@ yarn-error.log*
 *.swo
 *.swn
 *.bak
+
+# Folders
+docs/repo-ingestions/
+
+# Files
+docs/scrapnotes.md

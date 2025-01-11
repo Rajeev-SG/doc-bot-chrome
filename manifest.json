@@ -5,14 +5,23 @@
   "description": "Convert web pages to markdown with history and collections",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "scripting"
   ],
-  "action": {
-    "default_popup": "front-end/index.html"
+  "host_permissions": [
+    "https://r.jina.ai/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
   },
+  "action": {},
   "icons": {
     "16": "front-end/icons/icon16.png",
     "48": "front-end/icons/icon48.png",
     "128": "front-end/icons/icon128.png"
-  }
+  },
+  "web_accessible_resources": [{
+    "resources": ["content.js"],
+    "matches": ["<all_urls>"]
+  }]
 }

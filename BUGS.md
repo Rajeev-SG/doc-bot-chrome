@@ -2,58 +2,94 @@
 
 ## Known Issues
 
-### Content Conversion
-- [ ] Complex web pages with dynamic content may not convert correctly
-- [ ] Some special characters might not be properly escaped in Markdown output
-- [ ] JavaScript-rendered content might not be captured in the conversion
+### Content Script Injection
+- [ ] Content script injection may fail on certain Chrome URLs (expected behavior due to Chrome security)
+- [ ] No visual feedback when content script is injected successfully
+- [ ] Content script injection state is not persisted across page reloads
+
+### Jina API Integration
+- [ ] Some websites may block the Jina Reader API request due to CORS
+- [ ] No progress indicator during markdown conversion
+- [ ] API errors may not be user-friendly
+- [ ] No retry mechanism for failed API requests
 
 ### Storage
-- [ ] Local storage limitations may affect users with large numbers of saved entries
-- [ ] No automatic backup functionality for saved entries
+- [ ] Storage initialization only sets a basic flag
+- [ ] No error recovery mechanism if storage initialization fails
+- [ ] No cleanup mechanism for storage data
+- [ ] No way to view stored markdown without console
 
 ## Workarounds
 
-### Content Conversion Issues
-1. For dynamic content:
-   - Wait for the page to fully load before converting
-   - Use the scroll-to-bottom feature to ensure all lazy-loaded content is rendered
+### Content Script Injection Issues
+1. For restricted URLs:
+   - Check the browser console for injection status
+   - Retry injection by clicking the extension icon again
+   - Use the extension on permitted URLs only
 
-2. For special characters:
-   - Use the "Download Raw" option to get unformatted content
-   - Manually clean up any problematic characters in the exported file
+2. For verification:
+   - Currently, check browser console for injection status
+   - Use background script console to verify conversion
 
-### Storage Limitations
-1. Regular maintenance:
-   - Periodically export and backup important collections
-   - Use the bulk download feature to save collections locally
-   - Remove unnecessary entries to free up storage space
+### Jina API Issues
+1. For CORS errors:
+   - Ensure the website allows external requests
+   - Try using the extension on public websites
+   - Check background script console for detailed error messages
+
+2. For conversion issues:
+   - Verify the page is fully loaded before converting
+   - Check both consoles for error messages
+   - Try refreshing the page and converting again
+
+### Storage Issues
+1. If initialization fails:
+   - Check browser console for error messages
+   - Clear extension storage and reload
+   - Reinstall extension if issues persist
 
 ## Planned Improvements
 
 ### Short-term (Next Release)
-- [ ] Implement cloud storage sync
-- [ ] Add support for custom Markdown templates
-- [ ] Improve handling of dynamic content
-- [ ] Add batch operations for collections
+- [ ] Add visual feedback for content script injection
+- [ ] Add progress indicator for conversion process
+- [ ] Implement storage cleanup mechanism
+- [ ] Add basic UI for viewing stored markdown
+- [ ] Improve error messages for API failures
 
 ### Medium-term
-- [ ] Add support for offline mode
-- [ ] Implement automatic backup functionality
-- [ ] Add export options for different formats (PDF, HTML)
-- [ ] Improve search functionality with tags and filters
+- [ ] Add popup UI for conversion status
+- [ ] Implement persistent content script state
+- [ ] Add storage data versioning
+- [ ] Add markdown preview functionality
+- [ ] Implement retry mechanism for API failures
 
 ### Long-term
-- [ ] Add collaborative features for shared collections
-- [ ] Implement AI-powered content organization
-- [ ] Add integration with popular note-taking apps
-- [ ] Create a web dashboard for managing entries
+- [ ] Add offline mode with cached conversions
+- [ ] Implement batch conversion feature
+- [ ] Add export functionality for stored markdown
+- [ ] Create comprehensive error logging system
+
+## Testing Status
+
+### Current Test Coverage
+- ✓ Background script initialization
+- ✓ Content script injection
+- ✓ Storage operations
+- ✓ Error handling scenarios
+- ✓ Basic API integration
+
+### Known Test Limitations
+- Limited Chrome API mock coverage
+- No end-to-end testing
+- Manual testing required for actual API calls
+- No performance testing for large pages
 
 ## Contributing
 
-If you find a bug or have a suggestion:
-1. Check if it's already listed in this document
-2. If not, please create an issue with:
-   - Detailed description of the problem
-   - Steps to reproduce
-   - Expected vs actual behavior
-   - Browser version and OS information
+Before submitting issues:
+1. Check both consoles for error messages
+2. Verify Chrome version compatibility
+3. Check if issue occurs in incognito mode
+4. Provide steps to reproduce the issue
+5. Include console output from both contexts
