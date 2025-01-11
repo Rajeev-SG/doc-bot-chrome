@@ -1,0 +1,2519 @@
+Directory structure:
+└── Rajeev-SG-doc-bot-chrome/
+    ├── README.md
+    ├── chrome-extension-structure.txt
+    ├── chrome-extension-tutorial.txt
+    ├── jina-reader-readme.md
+    ├── windsurf-capabilities.md
+    ├── chrome-extension-core-concepts/
+    │   ├── activeTab.txt
+    │   ├── content-scripts.txt
+    │   ├── match-patterns.txt
+    │   ├── messaging.txt
+    │   └── storage-and-cookies.txt
+    └── front-end/
+        ├── eslint.config.js
+        ├── index.html
+        ├── manifest.json
+        ├── package-lock.json
+        ├── package.json
+        ├── postcss.config.js
+        ├── tailwind.config.js
+        ├── tsconfig.app.json
+        ├── tsconfig.json
+        ├── tsconfig.node.json
+        ├── vite.config.ts
+        ├── .gitignore
+        ├── src/
+        │   ├── App.tsx
+        │   ├── index.css
+        │   ├── main.tsx
+        │   ├── vite-env.d.ts
+        │   ├── components/
+        │   │   ├── CollectionPreview.tsx
+        │   │   ├── ConvertTab.tsx
+        │   │   ├── Header.tsx
+        │   │   ├── HistoryTab.tsx
+        │   │   ├── PreviewModal.tsx
+        │   │   └── Toast.tsx
+        │   └── types/
+        │       └── index.ts
+        └── .bolt/
+            ├── config.json
+            └── prompt
+
+================================================
+File: /README.md
+================================================
+# doc-bot-chrome
+Chrome extension for saving pages to markdown
+
+
+================================================
+File: /chrome-extension-structure.txt
+================================================
+Directory structure:
+└── tutorial.getting-started/
+    ├── background.js
+    ├── button.css
+    ├── manifest.json
+    ├── options.html
+    ├── options.js
+    ├── popup.html
+    ├── popup.js
+    └── images/
+
+================================================
+File: /functional-samples/tutorial.getting-started/background.js
+================================================
+const color = '#3aa757';
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.sync.set({ color });
+  console.log('Default background color set to %cgreen', `color: ${color}`);
+});
+
+
+================================================
+File: /functional-samples/tutorial.getting-started/button.css
+================================================
+button {
+  height: 30px;
+  width: 30px;
+  outline: none;
+  margin: 10px;
+  border: none;
+  border-radius: 2px;
+}
+
+button.current {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px black;
+}
+
+
+================================================
+File: /functional-samples/tutorial.getting-started/manifest.json
+================================================
+{
+  "name": "Getting Started Example",
+  "description": "Build an Extension!",
+  "version": "1.0",
+  "manifest_version": 3,
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["storage", "activeTab", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "/images/get_started16.png",
+      "32": "/images/get_started32.png",
+      "48": "/images/get_started48.png",
+      "128": "/images/get_started128.png"
+    }
+  },
+  "icons": {
+    "16": "/images/get_started16.png",
+    "32": "/images/get_started32.png",
+    "48": "/images/get_started48.png",
+    "128": "/images/get_started128.png"
+  },
+  "options_page": "options.html"
+}
+
+
+================================================
+File: /functional-samples/tutorial.getting-started/options.html
+================================================
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="button.css" />
+  </head>
+  <body>
+    <div id="buttonDiv"></div>
+    <div>
+      <p>Choose a different background color!</p>
+    </div>
+    <script src="options.js"></script>
+  </body>
+</html>
+
+
+================================================
+File: /functional-samples/tutorial.getting-started/options.js
+================================================
+const page = document.getElementById('buttonDiv');
+const selectedClassName = 'current';
+const presetButtonColors = ['#3aa757', '#e8453c', '#f9bb2d', '#4688f1'];
+
+// Reacts to a button click by marking the selected button and saving
+// the selection
+function handleButtonClick(event) {
+  // Remove styling from the previously selected color
+  const current = event.target.parentElement.querySelector(
+    `.${selectedClassName}`
+  );
+  if (current && current !== event.target) {
+    current.classList.remove(selectedClassName);
+  }
+
+  // Mark the button as selected
+  const color = event.target.dataset.color;
+  event.target.classList.add(selectedClassName);
+  chrome.storage.sync.set({ color });
+}
+
+// Add a button to the page for each supplied color
+function constructOptions(buttonColors) {
+  chrome.storage.sync.get('color', (data) => {
+    const currentColor = data.color;
+
+    // For each color we were provided…
+    for (const buttonColor of buttonColors) {
+      // …create a button with that color…
+      const button = document.createElement('button');
+      button.dataset.color = buttonColor;
+      button.style.backgroundColor = buttonColor;
+
+      // …mark the currently selected color…
+      if (buttonColor === currentColor) {
+        button.classList.add(selectedClassName);
+      }
+
+      // …and register a listener for when that button is clicked
+      button.addEventListener('click', handleButtonClick);
+      page.appendChild(button);
+    }
+  });
+}
+
+// Initialize the page by constructing the color options
+constructOptions(presetButtonColors);
+
+
+================================================
+File: /functional-samples/tutorial.getting-started/popup.html
+================================================
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" href="button.css" />
+  </head>
+  <body>
+    <button id="changeColor"></button>
+    <script src="popup.js"></script>
+  </body>
+</html>
+
+
+================================================
+File: /functional-samples/tutorial.getting-started/popup.js
+================================================
+// Initialize button with users' preferred color
+const changeColor = document.getElementById('changeColor');
+
+chrome.storage.sync.get('color', ({ color }) => {
+  changeColor.style.backgroundColor = color;
+});
+
+// When the button is clicked, inject setPageBackgroundColor into current page
+changeColor.addEventListener('click', async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: setPageBackgroundColor
+  });
+});
+
+// The body of this function will be executed as a content script inside the
+// current page
+function setPageBackgroundColor() {
+  chrome.storage.sync.get('color', ({ color }) => {
+    document.body.style.backgroundColor = color;
+  });
+}
+
+
+
+
+================================================
+File: /chrome-extension-tutorial.txt
+================================================
+Title: Hello World extension
+
+URL Source: http://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world
+
+Markdown Content:
+Hello World extension  |  Chrome Extensions  |  Chrome for Developers
+
+Hello World extension
+=====================
+
+Stay organized with collections Save and categorize content based on your preferences.
+
+Learn the basics of Chrome extension development by building your first Hello World extension.
+
+Overview
+--------
+
+You will create a "Hello World" example, load the extension locally, locate logs, and explore other recommendations.
+
+Hello World
+-----------
+
+This extension will display “Hello Extensions” when the user clicks the extension toolbar icon.
+
+![Image 27: Hello extension](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/hello-extension-6e3eacba176d3.png)
+
+Hello Extension popup
+
+Start by creating a new directory to store your extension files. If you prefer, you can download the full source code from [GitHub](https://github.com/GoogleChrome/chrome-extensions-samples/tree/main/functional-samples/tutorial.hello-world).
+
+Next, create a new file in this directory called `manifest.json`. This JSON file describes the extension's capabilities and configuration. For example, most manifest files contain an `"action"` key which declares the image Chrome should use as the extension's action icon and the HTML page to show in a popup when the extension's action icon is clicked.
+
+```
+{
+  "name": "Hello Extensions",
+  "description": "Base Level Extension",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "hello.html",
+    "default_icon": "hello_extensions.png"
+  }
+}
+```
+[Download the icon](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/icon.png) to your directory, and be sure to change its name to match what's in the `"default_icon"` key.
+
+For the popup, create a file named `hello.html`, and add the following code:
+
+```
+<html>
+  <body>
+    <h1>Hello Extensions</h1>
+  </body>
+</html>
+```
+The extension now displays a popup when the extension's action icon (toolbar icon) is clicked. You can test it in Chrome by loading it locally. Ensure all files are saved.
+
+Load an unpacked extension
+--------------------------
+
+To load an unpacked extension in developer mode:
+
+1.  Go to the Extensions page by entering `chrome://extensions` in a new tab. (By design `chrome://` URLs are not linkable.)
+    *   Alternatively, click the Extensions menu puzzle button and select **Manage Extensions** at the bottom of the menu.
+    *   Or, click the Chrome menu, hover over **More Tools,** then select **Extensions**.
+2.  Enable Developer Mode by clicking the toggle switch next to **Developer mode**.
+3.  Click the **Load unpacked** button and select the extension directory.
+    
+    ![Image 28: Extensions page](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/extensions-page-e0d64d89a6acf.png)
+    
+    Extensions page (chrome://extensions)
+    
+
+Ta-da! The extension has been successfully installed. If no extension icons were included in the manifest, a generic icon will be created for the extension.
+
+Pin the extension
+-----------------
+
+By default, when you load your extension locally, it will appear in the extensions menu (![Image 29: Puzzle](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/puzzle-5416192fa9ae1.png)). Pin your extension to the toolbar to quickly access your extension during development.
+
+![Image 30: Pinning the extension](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/pinning-extension-215cb97773ab6.png)
+
+Pinning the extension
+
+Click the extension's action icon (toolbar icon); you should see a popup.
+
+![Image 31: hello world extension](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/hello-world-extension-27a679d21340d.png)
+
+Hello World extension
+
+Reload the extension
+--------------------
+
+Go back to the code and change the name of the extension to "Hello Extensions of the world!" in the manifest.
+
+```
+{
+  "manifest_version": 3,
+  "name": "Hello Extensions of the world!",
+  ...
+}
+```
+After saving the file, to see this change in the browser you also have to refresh the extension. Go to the Extensions page and click the refresh icon next to the **on**/**off** toggle:
+
+![Image 32: Reload an extension](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/reload-extension-241cc5378fffb.png)
+
+### When to reload the extension
+
+The following table shows which components need to be reloaded to see changes:
+
+| Extension component | Requires extension reload |
+| --- | --- |
+| The manifest | Yes |
+| Service worker | Yes |
+| Content scripts | Yes (plus the host page) |
+| The popup | No |
+| Options page | No |
+| Other extension HTML pages | No |
+
+Find console logs and errors
+----------------------------
+
+### Console logs
+
+During development, you can debug your code by accessing the browser console logs. In this case, we will locate the logs for the popup. Start by adding a script tag to `hello.html`.
+
+```
+<html>
+  <body>
+    <h1>Hello Extensions</h1>
+    <script src="popup.js"></script>
+  </body>
+</html>
+```
+Create a `popup.js` file and add the following code:
+
+```
+console.log("This is a popup!")
+```
+To see this message logged in the Console:
+
+1.  Open the popup.
+2.  Right-click the popup.
+3.  Select **Inspect**.
+    
+    ![Image 33: Inspecting the popup.](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/inspecting-popup-359e35efc3afb.png)
+    
+    Inspecting a popup.
+    
+4.  In the [DevTools](http://developer.chrome.com/docs/devtools), navigate to the **Console** panel.
+    
+    ![Image 34: DevTools Code Panel](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/devtools-code-panel-71b4e1577c834.png)
+    
+    Inspecting a popup
+    
+
+### Error logs
+
+Now let's break the extension. We can do so by removing the closing quote in `popup.js`:
+
+```
+console.log("This is a popup!) // ❌ broken code
+```
+Go to the Extensions page and open the popup. An **Errors** button will appear.
+
+![Image 35: Extensions page with error button](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/extensions-page-error-bu-5c0c2b74fc8ee.png)
+
+Click the **Errors** button to learn more about the error:
+
+![Image 36: Extension error details](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/extension-error-details-7784a142a2649.png)
+
+To learn more about debugging the service worker, options page, and content scripts, see [Debugging extensions](http://developer.chrome.com/docs/extensions/get-started/tutorial/debug).
+
+Structure an extension project
+------------------------------
+
+There are many ways to structure an extension project; however, the only prerequisite is to place the manifest.json file in the extension's root directory as in following example:
+
+![Image 37: The contents of an extension folder: manifest.json, background.js, scripts folder, popup folder, and images folder.](http://developer.chrome.com/static/docs/extensions/get-started/tutorial/hello-world/image/the-contents-an-extensio-fc9e4690df76c.png)
+
+================================================
+File: /jina-reader-readme.md
+================================================
+# Reader
+
+Your LLMs deserve better input.
+
+Reader does two things:
+
+- **Read**: It converts any URL to an **LLM-friendly** input with `https://r.jina.ai/https://your.url`. Get improved output for your agent and RAG systems at no cost.
+- **Search**: It searches the web for a given query with `https://s.jina.ai/your+query`. This allows your LLMs to access the latest world knowledge from the web.
+
+Check out [the live demo](https://jina.ai/reader#demo)
+
+Or just visit these URLs (**Read**) https://r.jina.ai/https://github.com/jina-ai/reader, (**Search**) https://s.jina.ai/Who%20will%20win%202024%20US%20presidential%20election%3F and see yourself.
+
+> Feel free to use Reader API in production. It is free, stable and scalable. We are maintaining it actively as one of the core products of Jina AI. [Check out rate limit](https://jina.ai/reader#pricing)
+
+## Updates
+
+- **2024-10-08**: Introduced an `adaptive crawler`. It can recursively crawl the website and extract the most relevant pages for a given webpage.
+- **2024-07-15**: To restrict the results of `s.jina.ai` to certain domain/website, you can set e.g. `site=jina.ai` in the query parameters, which enables in-site search. For more options, [try our updated live-demo](https://jina.ai/reader/#apiform).
+- **2024-07-01**: We have resolved a DDoS attack and other traffic abusing since June 27th. We also found a bug introduced on June 28th which may cause higher latency for some websites. The attack and the bug have been solved; if you have experienced high latency of r.jina.ai between June 27th-30th, it should back to normal now.
+- **2024-05-30**: Reader can now read abitrary PDF from any URL! Check out [this PDF result from NASA.gov](https://r.jina.ai/https://www.nasa.gov/wp-content/uploads/2023/01/55583main_vision_space_exploration2.pdf) vs [the original](https://www.nasa.gov/wp-content/uploads/2023/01/55583main_vision_space_exploration2.pdf).
+- **2024-05-15**: We introduced a new endpoint `s.jina.ai` that searches on the web and return top-5 results, each in a LLM-friendly format. [Read more about this new feature here](https://jina.ai/news/jina-reader-for-search-grounding-to-improve-factuality-of-llms).
+- **2024-05-08**: Image caption is off by default for better latency. To turn it on, set `x-with-generated-alt: true` in the request header.
+- **2024-05-03**: We finally resolved a DDoS attack since April 29th. Now our API is much more reliable and scalable than ever!
+- **2024-04-24**: You now have more fine-grained control over Reader API [using headers](#using-request-headers), e.g. forwarding cookies, using HTTP proxy.
+- **2024-04-15**: Reader now supports image reading! It captions all images at the specified URL and adds `Image [idx]: [caption]` as an alt tag (if they initially lack one). This enables downstream LLMs to interact with the images in reasoning, summarizing etc. [See example here](https://x.com/JinaAI_/status/1780094402071023926).
+
+## Usage
+
+### Using `r.jina.ai` for single URL fetching
+
+Simply prepend `https://r.jina.ai/` to any URL. For example, to convert the URL `https://en.wikipedia.org/wiki/Artificial_intelligence` to an LLM-friendly input, use the following URL:
+
+[https://r.jina.ai/https://en.wikipedia.org/wiki/Artificial_intelligence](https://r.jina.ai/https://en.wikipedia.org/wiki/Artificial_intelligence)
+
+### Rate Limits
+
+| Reader API | `https://r.jina.ai` | Convert URL to LLM-friendly text | 20 RPM | 200 RPM | 1000 RPM | 4.6s | Count the number of tokens in the output response. | GET/POST |
+| ---------- | ------------------- | -------------------------------- | ------ | ------- | -------- | ---- | -------------------------------------------------- | -------- |
+
+
+================================================
+File: /windsurf-capabilities.md
+================================================
+# Windsurf Capabilities
+
+1. **Demonstrate Deep Reasoning over Knowledge**
+
+This demonstrates Cascade's abilities to:
+
+- Use tools to search through existing codebases.
+
+- Create multi-file multi-edit changes in a manner that is self-consistent.
+
+- Allow you to accept multiple changes at once.
+
+- **Search**: Cascade will intelligently search through your codebase for snippets relevant to the task that it’s trying to accomplish.
+
+- **Write**: Cascade will write changes for you in your file. Only available in Write mode which can be configured under and to the right the prompt input box.
+
+- **View file**: Cascade will analyze a file to gather more context to help it accomplish the task requested.
+
+- **Terminal**: Cascade has the ability to run both synchronous and background terminal processes. For example, it can generate and run install commands to set up a project as well as a background process to run the project.
+2. **Demonstrate Incorporation of Human Actions**
+
+Cascade has the ability to:
+
+- Reason about the actions that you are taking in the text editor and refer to them semantically.
+
+- Be fully operating on the same state of the codebase as you are, without you needing to scope out the problem for a copilot or agent.
+3. **Demonstrate Access to Tools**
+
+Cascade has the ability to: 
+
+- Reason iteratively about your existing codebases.
+- Suggest terminal commands and execute them within Cascade.
+- Debug stacktraces by identifying and reasoning about relevant code.
+- Suggest fixes to issues, making edit suggestions directly to your files.
+- Allow you to introspect diffs and accept diffs line-by-line.
+
+### Takeaways on Cascade
+
+These should demonstrate the power of the Windsurf Editor to jointly reason deeply about your codebases, access a broad set of tools, and incorporate your own actions as a developer. 
+
+Cascade will not always be perfect, and often you may find yourself asking Cascade follow ups to fix unexpected side effects, or just taking over entirely and ignoring the AI for more complex tasks. That is totally okay! Cascade is the most powerful AI assistant that you can still trust and iterate with.
+
+
+================================================
+File: /chrome-extension-core-concepts/activeTab.txt
+================================================
+Title: The "activeTab" permission
+
+URL Source: http://developer.chrome.com/docs/extensions/develop/concepts/activeTab
+
+Markdown Content:
+The "activeTab" permission  |  Chrome Extensions  |  Chrome for Developers
+=============== 
+
+The "activeTab" permission
+==========================
+
+Stay organized with collections Save and categorize content based on your preferences.
+
+The `"activeTab"` permission gives an extension temporary access to the currently active tab when the user _invokes_ the extension - for example by clicking its [action](http://developer.chrome.com/docs/extensions/reference/api/action). Access to the tab lasts while the user is on that page, and is revoked when the user navigates away or closes the tab. For example, if the user invokes the extension on https://example.com and then navigates to https://example.com/foo, the extension will continue to have access to the page. If the user navigates to https://chromium.org, access is revoked.
+
+This serves as an alternative for many uses of `"<all_urls>"`, but displays _no warning message_ during installation:
+
+Without `"activeTab"`:
+
+![Image 9: Without activeTab](http://developer.chrome.com/static/docs/extensions/develop/concepts/activeTab/image/without-activetab-ac8957597267.png)
+
+With `"activeTab"`:
+
+![Image 10: With activeTab](http://developer.chrome.com/static/docs/extensions/develop/concepts/activeTab/image/with-activetab-f0c7e749bcb97.png)
+
+Example
+-------
+
+See the [Page Redder](https://github.com/GoogleChrome/chrome-extensions-samples/tree/main/functional-samples/sample.page-redder) sample extension:
+
+manifest.json:
+
+```
+{
+  "name": "Page Redder",
+  "version": "2.0",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "Make this page red"
+  },
+  "manifest_version": 3
+}
+```
+service-worker:
+
+```
+function reddenPage() {
+  document.body.style.backgroundColor = 'red';
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab.url.includes('chrome://')) {
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: reddenPage
+    });
+  }
+});
+```
+
+Motivation
+----------
+
+Consider a web clipping extension that has an [action](http://developer.chrome.com/docs/extensions/reference/api/action) and a [context menu item](http://developer.chrome.com/docs/extensions/reference/api/contextMenus). This extension may only really need to access tabs when its action is clicked, or when its context menu item is executed.
+
+Without `"activeTab"`, this extension would need to request full, persistent access to every website, just so that it could do its work if it happened to be called upon by the user. This is a lot of power to entrust to such a simple extension. And if the extension is ever compromised, the attacker gets access to everything the extension had.
+
+In contrast, an extension with the `"activeTab"` permission only obtains access to a tab in response to an explicit user gesture. If the extension is compromised the attacker would need to wait for the user to invoke the extension before obtaining access. And that access only lasts until the tab is navigated or is closed.
+
+What "activeTab" allows
+-----------------------
+
+While the `"activeTab"` permission is enabled for a tab, an extension can:
+
+*   Call [`scripting.insertCSS()`](http://developer.chrome.com/docs/extensions/reference/api/scripting#method-insertCSS) or [`scripting.executeScript()`](http://developer.chrome.com/docs/extensions/reference/api/scripting#method-executeScript) on that tab if the `"scripting"` [permission](http://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions#permissions) is also declared (as in the [example above](http://developer.chrome.com/docs/extensions/develop/concepts/activeTab#example)).
+*   Get the URL, title, and favicon for that tab via an API that returns a [`tabs.Tab`](http://developer.chrome.com/docs/extensions/reference/api/tabs#type-Tab) object (essentially, `"activeTab"` grants [host permission](http://developer.chrome.com/docs/extensions/develop/concepts/match-patterns) temporarily).
+*   Intercept network requests in the tab to the tab's main frame origin using the [webRequest](http://developer.chrome.com/docs/extensions/reference/api/webRequest) API. The extension temporarily gets host permissions for the tab's main frame origin.
+
+Invoking activeTab
+------------------
+
+The following user gestures enable the `"activeTab"` permission:
+
+*   Executing an [action](http://developer.chrome.com/docs/extensions/reference/api/action)
+*   Executing a [context menu item](http://developer.chrome.com/docs/extensions/reference/api/contextMenus)
+*   Executing a keyboard shortcut from the [commands API](http://developer.chrome.com/docs/extensions/reference/api/commands)
+*   Accepting a suggestion from the [omnibox API](http://developer.chrome.com/docs/extensions/reference/api/omnibox)
+
+
+
+================================================
+File: /chrome-extension-core-concepts/content-scripts.txt
+================================================
+Title: Content scripts
+
+URL Source: http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts
+
+Markdown Content:
+Content scripts are files that run in the context of web pages. Using the standard [Document Object Model](https://developer.mozilla.org/docs/Web/API/Document_Object_Model) (DOM), they are able to read details of the web pages the browser visits, make changes to them, and pass information to their parent extension.
+
+Understand content script capabilities
+--------------------------------------
+
+Content scripts can access the following extension APIs directly:
+
+*   [`dom`](https://developer.chrome.com/docs/extensions/reference/api/dom)
+*   [`i18n`](https://developer.chrome.com/docs/extensions/reference/api/i18n)
+*   [`storage`](https://developer.chrome.com/docs/extensions/reference/api/storage)
+*   [`runtime.connect()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connect)
+*   [`runtime.getManifest()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-getManifest)
+*   [`runtime.getURL()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-getURL)
+*   [`runtime.id`](https://developer.chrome.com/docs/extensions/reference/api/runtime#property-id)
+*   [`runtime.onConnect`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnect)
+*   [`runtime.onMessage`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onMessage)
+*   [`runtime.sendMessage()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-sendMessage)
+
+Content scripts are unable to access other APIs directly. But they can access them indirectly by [exchanging messages](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) with other parts of your extension.
+
+You can also access other files in your extension from a content script, using APIs like `fetch()`. To do this, you need to declare them as [web-accessible resources](https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources). Note that this also exposes the resources to any first-party or third-party scripts running on the same site.
+
+Work in isolated worlds
+-----------------------
+
+Content scripts live in an isolated world, allowing a content script to make changes to its JavaScript environment without conflicting with the page or other extensions' content scripts.
+
+An extension may run in a web page with code similar to the following example.
+
+webPage.html
+
+```
+<html>
+  <button id="mybutton">click me</button>
+  <script>
+    var greeting = "hello, ";
+    var button = document.getElementById("mybutton");
+    button.person_name = "Bob";
+    button.addEventListener(
+        "click", () => alert(greeting + button.person_name + "."), false);
+  </script>
+</html>
+```
+That extension could inject the following content script using one of the techniques outlined in the [Inject scripts](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#functionality) section.
+
+content-script.js
+
+```
+var greeting = "hola, ";
+var button = document.getElementById("mybutton");
+button.person_name = "Roberto";
+button.addEventListener(
+    "click", () => alert(greeting + button.person_name + "."), false);
+```
+With this change, both alerts appear in sequence when the button is clicked.
+
+Inject scripts
+--------------
+
+Content scripts can be [declared statically](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#static-declarative), [declared dynamically](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#dynamic-declarative), or [programmatically injected](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#programmatic).
+
+### Inject with static declarations
+
+Use static content script declarations in manifest.json for scripts that should be automatically run on a well known set of pages.
+
+Statically declared scripts are registered in the manifest under the `"content_scripts"` key. They can include JavaScript files, CSS files, or both. All auto-run content scripts must specify [match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns).
+
+manifest.json
+
+```
+{
+ "name": "My extension",
+ ...
+ "content_scripts": [
+   {
+     "matches": ["https://*.nytimes.com/*"],
+     "css": ["my-styles.css"],
+     "js": ["content-script.js"]
+   }
+ ],
+ ...
+}
+
+```
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `matches` | array of strings | _Required._ Specifies which pages this content script will be injected into. See [Match Patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns) for details on the syntax of these strings and [Match patterns and globs](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#matchAndGlob) for information on how to exclude URLs. |
+| `css` | array of strings | _Optional._ The list of CSS files to be injected into matching pages. These are injected in the order they appear in this array, before any DOM is constructed or displayed for the page. |
+| `js` | array of strings | _Optional._ The list of JavaScript files to be injected into matching pages. Files are injected in the order they appear in this array. Each string in this list must contain a relative path to a resource in the extension's root directory. Leading slashes (\`/\`) are automatically trimmed. |
+| `run_at` | [RunAt](https://developer.chrome.com/docs/extensions/reference/api/extensionTypes#type-RunAt) | _Optional._ Specifies when the script should be injected into the page. Defaults to `document_idle`. |
+| `match_about_blank` | boolean | _Optional._ Whether the script should inject into an `about:blank` frame where the parent or opener frame matches one of the patterns declared in `matches`. Defaults to false. |
+| `match_origin_as_fallback` | boolean | _Optional._ Whether the script should inject in frames that were created by a matching origin, but whose URL or origin may not directly match the pattern. These include frames with different schemes, such as `about:`, `data:`, `blob:`, and `filesystem:`. See also [Injecting in related frames](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#injecting-in-related-frames). |
+| `world` | [ExecutionWorld](https://developer.chrome.com/docs/extensions/reference/api/scripting#type-ExecutionWorld) | _Optional._ The JavaScript world for a script to execute within. Defaults to `ISOLATED`. See also [Work in isolated worlds](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#isolated_world). |
+
+### Inject with dynamic declarations
+
+Dynamic content scripts are useful when the match patterns for content scripts are not well known or when content scripts shouldn't always be injected on known hosts.
+
+Introduced in Chrome 96, dynamic declarations are similar to [static declarations](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#static-declarative), but the content script object is registered with Chrome using methods in the [`chrome.scripting` namespace](https://developer.chrome.com/docs/extensions/reference/api/scripting) rather than in [manifest.json](https://developer.chrome.com/docs/extensions/reference/manifest). The Scripting API also allows extension developers to:
+
+*   [Register](https://developer.chrome.com/docs/extensions/reference/api/scripting#method-registerContentScripts) content scripts.
+*   [Get a list of](https://developer.chrome.com/docs/extensions/reference/api/scripting#method-getRegisteredContentScripts) registered content scripts.
+*   [Update](https://developer.chrome.com/docs/extensions/reference/api/scripting#method-updateContentScripts) the list of registered content scripts.
+*   [Remove](https://developer.chrome.com/docs/extensions/reference/api/scripting#method-unregisterContentScripts) registered content scripts.
+
+Like static declarations, dynamic declarations can include JavaScript files, CSS files, or both.
+
+service-worker.js
+
+```
+chrome.scripting
+  .registerContentScripts([{
+    id: "session-script",
+    js: ["content.js"],
+    persistAcrossSessions: false,
+    matches: ["*://example.com/*"],
+    runAt: "document_start",
+  }])
+  .then(() => console.log("registration complete"))
+  .catch((err) => console.warn("unexpected error", err))
+```
+service-worker.js
+
+```
+chrome.scripting
+  .updateContentScripts([{
+    id: "session-script",
+    excludeMatches: ["*://admin.example.com/*"],
+  }])
+  .then(() => console.log("registration updated"));
+```
+service-worker.js
+
+```
+chrome.scripting
+  .getRegisteredContentScripts()
+  .then(scripts => console.log("registered content scripts", scripts));
+```
+service-worker.js
+
+```
+chrome.scripting
+  .unregisterContentScripts({ ids: ["session-script"] })
+  .then(() => console.log("un-registration complete"));
+```
+
+### Inject programmatically
+
+Use programmatic injection for content scripts that need to run in response to events or on specific occasions.
+
+To inject a content script programmatically, your extension needs [host permissions](https://developer.chrome.com/docs/extensions/reference/permissions) for the page it's trying to inject scripts into. Host permissions can either be granted by requesting them as part of your extension's manifest or temporarily using [`"activeTab"`](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab).
+
+The following is a different versions of an activeTab-based extension.
+
+manifest.json:
+
+```
+{
+  "name": "My extension",
+  ...
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Action Button"
+  }
+}
+```
+Content scripts can be injected as files.
+
+content-script.js
+
+```
+
+document.body.style.backgroundColor = "orange";
+```
+service-worker.js:
+
+```
+chrome.action.onClicked.addListener((tab) => {
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["content-script.js"]
+  });
+});
+```
+Or, a function body can be injected and executed as a content script.
+
+service-worker.js:
+
+```
+function injectedFunction() {
+  document.body.style.backgroundColor = "orange";
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.scripting.executeScript({
+    target : {tabId : tab.id},
+    func : injectedFunction,
+  });
+});
+```
+Be aware that the injected function is a copy of the function referenced in the `chrome.scripting.executeScript()` call, not the original function itself. As a result, the function's body must be self contained; references to variables outside of the function will cause the content script to throw a [`ReferenceError`](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError).
+
+When injecting as a function, you can also pass arguments to the function.
+
+service-worker.js
+
+```
+function injectedFunction(color) {
+  document.body.style.backgroundColor = color;
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.scripting.executeScript({
+    target : {tabId : tab.id},
+    func : injectedFunction,
+    args : [ "orange" ],
+  });
+});
+```
+
+### Exclude matches and globs
+
+To customize specified page matching, include the following fields in a declarative registration.
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `exclude_matches` | array of strings | _Optional._ Excludes pages that this content script would otherwise be injected into. See [Match Patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns) for details of the syntax of these strings. |
+| `include_globs` | array of strings | _Optional._ Applied after `matches` to include only those URLs that also match this glob. This is intended to emulate the [`@include`](https://wiki.greasespot.net/Metadata_Block#.40include) Greasemonkey keyword. |
+| `exclude_globs` | array of string | _Optional._ Applied after `matches` to exclude URLs that match this glob. Intended to emulate the [`@exclude`](https://wiki.greasespot.net/Metadata_Block#.40exclude) Greasemonkey keyword. |
+
+The content script will be injected into a page if both of the following are true:
+
+*   Its URL matches any `matches` pattern and any `include_globs` pattern.
+*   The URL doesn't also match an `exclude_matches` or `exclude_globs` pattern. Because the `matches` property is required, `exclude_matches`, `include_globs`, and `exclude_globs` can only be used to limit which pages will be affected.
+
+The following extension injects the content script into `https://www.nytimes.com/health` but not into `https://www.nytimes.com/business` .
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.nytimes.com/*"],
+      "exclude_matches": ["*://*/*business*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+service-worker.js
+
+```
+chrome.scripting.registerContentScripts([{
+  id : "test",
+  matches : [ "https://*.nytimes.com/*" ],
+  excludeMatches : [ "*://*/*business*" ],
+  js : [ "contentScript.js" ],
+}]);
+```
+Glob properties follow a different, more flexible syntax than [match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns). Acceptable glob strings are URLs that may contain "wildcard" asterisks and question marks. The asterisk (`*`) matches any string of any length, including the empty string, while the question mark (`?`) matches any single character.
+
+For example, the glob `https://???.example.com/foo/\*` matches any of the following:
+
+*   `https://www.example.com/foo/bar`
+*   `https://the.example.com/foo/`
+
+However, it does _not_ match the following:
+
+*   `https://my.example.com/foo/bar`
+*   `https://example.com/foo/`
+*   `https://www.example.com/foo`
+
+This extension injects the content script into `https://www.nytimes.com/arts/index.html` and `https://www.nytimes.com/jobs/index.htm*`, but not into `https://www.nytimes.com/sports/index.html`:
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.nytimes.com/*"],
+      "include_globs": ["*nytimes.com/???s/*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+This extension injects the content script into `https://history.nytimes.com` and `https://.nytimes.com/history`, but not into `https://science.nytimes.com` or `https://www.nytimes.com/science`:
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.nytimes.com/*"],
+      "exclude_globs": ["*science*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+One, all, or some of these can be included to achieve the correct scope.
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.nytimes.com/*"],
+      "exclude_matches": ["*://*/*business*"],
+      "include_globs": ["*nytimes.com/???s/*"],
+      "exclude_globs": ["*science*"],
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+
+### Run time
+
+The `run_at` field controls when JavaScript files are injected into the web page. The preferred and default value is `"document_idle"`. See the [RunAt](https://developer.chrome.com/docs/extensions/reference/api/extensionTypes#type-RunAt) type for other possible values.
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.nytimes.com/*"],
+      "run_at": "document_idle",
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+service-worker.js
+
+```
+chrome.scripting.registerContentScripts([{
+  id : "test",
+  matches : [ "https://*.nytimes.com/*" ],
+  runAt : "document_idle",
+  js : [ "contentScript.js" ],
+}]);
+```
+
+| Name | Type | Description |
+| --- | --- | --- |
+| `document_idle` | string | _Preferred._ Use `"document_idle"` whenever possible.The browser chooses a time to inject scripts between `"document_end"` and immediately after the [`window.onload`](https://developer.mozilla.org/docs/Web/API/Window/load_event) event fires. The exact moment of injection depends on how complex the document is and how long it is taking to load, and is optimized for page load speed.
+Content scripts running at `"document_idle"` don't need to listen for the `window.onload` event, they are guaranteed to run after the DOM is complete. If a script definitely needs to run after `window.onload`, the extension can check if `onload` has already fired by using the [`document.readyState`](https://developer.mozilla.org/docs/Web/API/Document/readyState) property.
+
+ |
+| `document_start` | string | Scripts are injected after any files from `css`, but before any other DOM is constructed or any other script is run. |
+| `document_end` | string | Scripts are injected immediately after the DOM is complete, but before subresources like images and frames have loaded. |
+
+### Specify frames
+
+For declarative content scripts specified in the manifest, the [`"all_frames"`](https://developer.chrome.com/docs/extensions/reference/manifest/content-scripts#frames) field allows the extension to specify if JavaScript and CSS files should be injected into all frames matching the specified URL requirements or only into the topmost frame in a tab:
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.nytimes.com/*"],
+      "all_frames": true,
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+When programmatically registering content scripts using [`chrome.scripting.registerContentScripts(...)`](https://developer.chrome.com/docs/extensions/reference/api/scripting#type-RegisteredContentScript), the [`allFrames`](https://developer.chrome.com/docs/extensions/reference/api/scripting#properties_4) parameter can be used to specify if the content script should be injected into all frames matching the specified URL requirements or only into the topmost frame in a tab. This can only be used with tabId, and cannot be used if frameIds or documentIds are specified:
+
+service-worker.js
+
+```
+chrome.scripting.registerContentScripts([{
+  id: "test",
+  matches : [ "https://*.nytimes.com/*" ],
+  allFrames : true,
+  js : [ "contentScript.js" ],
+}]);
+```
+Extensions may want to run scripts in frames that are related to a matching frame, but don't themselves match. A common scenario when this is the case is for frames with URLs that were created by a matching frame, but whose URLs don't themselves match the script's specified patterns.
+
+This is the case when an extension wants to inject in frames with URLs that have `about:`, `data:`, `blob:`, and `filesystem:` schemes. In these cases, the URL won't match the content script's pattern (and, in the case of `about:` and `data:`, don't even include the parent URL or origin in the URL at all, as in `about:blank` or `data:text/html,<html>Hello, World!</html>`). However, these frames can still be associated with the creating frame.
+
+To inject into these frames, extensions can specify the `"match_origin_as_fallback"` property on a content script specification in the manifest.
+
+manifest.json
+
+```
+{
+  "name": "My extension",
+  ...
+  "content_scripts": [
+    {
+      "matches": ["https://*.google.com/*"],
+      "match_origin_as_fallback": true,
+      "js": ["contentScript.js"]
+    }
+  ],
+  ...
+}
+```
+When specified and set to `true`, Chrome will look at the origin of the initiator of the frame to determine whether the frame matches, rather than at the URL of the frame itself. Note that this might also be different than the target frame's _origin_ (e.g., `data:` URLs have a null origin).
+
+The initiator of the frame is the frame that created or navigated the target frame. While this is commonly the direct parent or opener, it may not be (as in the case of a frame navigating an iframe within an iframe).
+
+Because this compares the _origin_ of the initiator frame, the initiator frame could be on at any path from that origin. To make this implication clear, Chrome requires any content scripts specified with `"match_origin_as_fallback"` set to `true` to also specify a path of `*`.
+
+When both `"match_origin_as_fallback"` and `"match_about_blank"` are specified, `"match_origin_as_fallback"` takes priority.
+
+Communication with the embedding page
+-------------------------------------
+
+Although the execution environments of content scripts and the pages that host them are isolated from each other, they share access to the page's DOM. If the page wishes to communicate with the content script, or with the extension through the content script, it must do so through the shared DOM.
+
+An example can be accomplished using [`window.postMessage()`](https://developer.mozilla.org/docs/Web/API/Window/postMessage):
+
+content-script.js
+
+```
+var port = chrome.runtime.connect();
+
+window.addEventListener("message", (event) => {
+  // We only accept messages from ourselves
+  if (event.source !== window) {
+    return;
+  }
+
+  if (event.data.type && (event.data.type === "FROM_PAGE")) {
+    console.log("Content script received: " + event.data.text);
+    port.postMessage(event.data.text);
+  }
+}, false);
+```
+example.js
+
+```
+document.getElementById("theButton").addEventListener("click", () => {
+  window.postMessage(
+      {type : "FROM_PAGE", text : "Hello from the webpage!"}, "*");
+}, false);
+```
+The non-extension page, example.html, posts messages to itself. This message is intercepted and inspected by the content script and then posted to the extension process. In this way, the page establishes a line of communication to the extension process. The reverse is possible through similar means.
+
+Access extension files
+----------------------
+
+To access an extension file from a content script, you can call [`chrome.runtime.getURL()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-getURL) to get the _absolute URL_ of your extension asset as shown in the following example (`content.js`):
+
+content-script.js
+
+```
+let image = chrome.runtime.getURL("images/my_image.png")
+```
+To use fonts or images in a CSS file, you can use [`@@extension_id`](https://developer.chrome.com/docs/extensions/reference/api/i18n#overview-predefined) to construct a URL as shown in the following example (`content.css`):
+
+content.css
+
+```
+body {
+ background-image:url('chrome-extension://__MSG_@@extension_id__/background.png');
+}
+
+@font-face {
+ font-family: 'Stint Ultra Expanded';
+ font-style: normal;
+ font-weight: 400;
+ src: url('chrome-extension://__MSG_@@extension_id__/fonts/Stint Ultra Expanded.woff') format('woff');
+}
+```
+All assets must be declared as [web accessible resources](https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources) in the `manifest.json` file:
+
+manifest.json
+
+```
+{
+ ...
+ "web_accessible_resources": [
+   {
+     "resources": [ "images/*.png" ],
+     "matches": [ "https://example.com/*" ]
+   },
+   {
+     "resources": [ "fonts/*.woff" ],
+     "matches": [ "https://example.com/*" ]
+   }
+ ],
+ ...
+}
+```
+
+Stay secure
+-----------
+
+While isolated worlds provide a layer of protection, using content scripts can create vulnerabilities in an extension and the web page. If the content script receives content from a separate website, such as by calling `fetch()`, be careful to filter content against [cross-site scripting](https://en.wikipedia.org/wiki/Cross-site_scripting) attacks before injecting it. Only communicate over HTTPS in order to avoid ["man-in-the-middle"](https://en.wikipedia.org/wiki/Man-in-the-middle_attack) attacks.
+
+Be sure to filter for malicious web pages. For example, the following patterns are dangerous, and disallowed in Manifest V3:
+
+Don't
+
+content-script.js
+
+const data \= document.getElementById("json-data");
+// WARNING! Might be evaluating an evil script!
+const parsed \= eval("(" + data + ")");
+
+Don't
+
+content-script.js
+
+const elmt\_id \= ...
+// WARNING! elmt\_id might be '); ... evil script ... //'!
+window.setTimeout("animate(" + elmt\_id + ")", 200);
+
+Instead, prefer safer APIs that don't run scripts:
+
+Do
+
+content-script.js
+
+const data \= document.getElementById("json-data")
+// JSON.parse does not evaluate the attacker's scripts.
+const parsed \= JSON.parse(data);
+
+Do
+
+content-script.js
+
+const elmt\_id \= ...
+// The closure form of setTimeout does not evaluate scripts.
+window.setTimeout(() \=\> animate(elmt\_id), 200);
+
+
+================================================
+File: /chrome-extension-core-concepts/match-patterns.txt
+================================================
+Title: Match patterns
+
+URL Source: http://developer.chrome.com/docs/extensions/develop/concepts/match-patterns
+
+Markdown Content:
+Match patterns  |  Chrome Extensions  |  Chrome for Developers
+=============== 
+
+Match patterns
+==============
+
+Stay organized with collections Save and categorize content based on your preferences.
+
+A match pattern is a URL with the following structure, used to specify a group of URLs:
+
+```
+<scheme>://<host>/<path>
+```
+**scheme**: Must be one of the following, separated from the rest of the pattern using a colon followed by a double slash (`://`):
+
+*   `http`
+*   `https`
+*   A wildcard `*`, which matches only `http` or `https`
+*   `file`
+
+For information on injecting content scripts into unsupported schemes, such as `about:` and `data:`, see [Injecting in related frames](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#injecting-in-related-frames).
+
+**host**: A hostname (`www.example.com`). A `*` before the hostname to match subdomains (`*.example.com`), or just a wildcard `*`. - If you use a wildcard in the host pattern, it must be the first or only character, and it must be followed by a period (`.`) or forward slash (`/`).
+
+**path**: A URL path (`/example`). For host permissions, the path is required but ignored. The wildcard (`/*`) should be used by convention.
+
+Extensions use match patterns in a variety of use cases, including the following:
+
+*   Injecting [content script](http://developer.chrome.com/docs/extensions/develop/concepts/content-scripts).
+*   [Declaring host permissions](http://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions#host-permissions) that some Chrome APIs require in addition to their own permissions.
+*   Granting access to [web-accessible resources](http://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources#manifest-declaration).
+*   Allowing message sending and receiving using the ["externally\_connectable.matches"](http://developer.chrome.com/docs/extensions/reference/manifest/externally-connectable#manifest) manifest key.
+
+Special cases
+-------------
+
+`"<all_urls>"`
+
+Matches any URL that starts with a permitted scheme, including any pattern listed under [valid patterns](http://developer.chrome.com/docs/extensions/develop/concepts/match-patterns#examples). Because it affects all hosts, Chrome web store reviews for extensions that use it [may take longer](http://developer.chrome.com/docs/webstore/review-process#review-time-factors).
+
+`"file:///"`
+
+Allows your extension to run on local files. This pattern requires the user to manually [grant access](http://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions#allow_access). Note that this case requires three slashes, not two.
+
+Localhost URLs and IP addresses
+
+To match any localhost port during development, use `http://localhost/*`. For IP addresses, specify the address plus a wildcard in the path, as in `http://127.0.0.1/*`. You can also use `http://*:*/*` to match localhost, IP addresses, and any port.
+
+Top Level domain match patterns
+
+Chrome doesn't support match patterns for [top Level domains (TLD)](https://developer.mozilla.org/docs/Glossary/TLD). Specify your match patterns within individual TLDs, as in `http://google.es/*` and `http://google.fr/*`.
+
+Example patterns
+----------------
+
+`https://*/*` or `https://*/`
+
+Matches any URL using the `https` scheme.
+
+`https://*/foo*`
+
+Matches any URL using the `https` scheme, on any host, with a path that starts with `foo`. Examples of matches include `https://example.com/foo/bar.html` and `https://www.google.com/foo`.
+
+`https://*.google.com/foo*bar`
+
+Matches any URL using the `https` scheme, on a google.com host, with a path that starts with `foo` and ends with `bar`. Examples of matches include `https://www.google.com/foo/baz/bar` and `https://docs.google.com/foobar`.
+
+`file:///foo*`
+
+Matches any local file whose path starts with `foo`. Examples of matches include `file:///foo/bar.html` and `file:///foo`.
+
+`http://127.0.0.1/*` or `http://127.0.0.1/`
+
+Matches any URL that uses the `http` scheme and is on the host 127.0.0.1. Examples of matches include `http://127.0.0.1/` and `http://127.0.0.1/foo/bar.html`.
+
+`http://localhost/*`
+
+Matches any localhost port.
+
+`*://mail.google.com/` or `*://mail.google.com/*`
+
+Matches any URL that starts with `http://mail.google.com` or `https://mail.google.com`.
+
+
+
+================================================
+File: /chrome-extension-core-concepts/messaging.txt
+================================================
+Title: Message passing
+
+URL Source: http://developer.chrome.com/docs/extensions/develop/concepts/messaging
+
+Markdown Content:
+Because content scripts run in the context of a web page, not the extension that runs them, they often need ways to communicate with the rest of the extension. For example, an RSS reader extension might use content scripts to detect the presence of an RSS feed on a page, then notify the service worker to display an action icon for that page.
+
+This communication uses message passing, which allows both extensions and content scripts to listen for each other's messages and respond on the same channel. A message can contain any valid JSON object (null, boolean, number, string, array, or object). There are two message passing APIs: one for [one-time requests](http://developer.chrome.com/docs/extensions/develop/concepts/messaging#simple), and a more complex one for [long-lived connections](http://developer.chrome.com/docs/extensions/develop/concepts/messaging#connect) that allow multiple messages to be sent. For information about sending messages between extensions, see the [cross-extension messages](http://developer.chrome.com/docs/extensions/develop/concepts/messaging#external) section.
+
+One-time requests
+-----------------
+
+To send a single message to another part of your extension, and optionally get a response, call [`runtime.sendMessage()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-sendMessage) or [`tabs.sendMessage()`](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-sendMessage). These methods let you send a one-time JSON-serializable message from a content script to the extension, or from the extension to a content script. To handle the response, use the returned promise. For backward compatibility with older extensions, you can instead pass a callback as the last argument. You can't use a promise and a callback in the same call.
+
+When you send a message, the event listener that handles the message is passed an optional third argument, `sendResponse`. This is a function that takes a JSON-serializable object that is used as the return value to the function that sent the message. By default, the `sendResponse` callback must be called synchronously. If you want to do asynchronous work to get the value passed to `sendResponse`, you **must** return a literal `true` (not just a truthy value) from the event listener. Doing so will keep the message channel open to the other end until `sendResponse` is called.
+
+```
+// Event listener
+function handleMessages(message, sender, sendResponse) {
+
+  fetch(message.url)
+    .then((response) => sendResponse({statusCode: response.status}))
+
+  // Since `fetch` is asynchronous, must send an explicit `true`
+  return true;
+}
+
+// Message sender
+  const {statusCode} = await chrome.runtime.sendMessage({
+    url: 'https://example.com'
+  });
+```
+For information on converting callbacks to promises and for using them in extensions, see [the Manifest V3 migration guide](https://developer.chrome.com/docs/extensions/develop/migrate/api-calls#replace-callbacks).
+
+Sending a request from a content script looks like this:
+
+content-script.js:
+
+```
+(async () => {
+  const response = await chrome.runtime.sendMessage({greeting: "hello"});
+  // do something with response here, not outside the function
+  console.log(response);
+})();
+```
+If you want to respond synchronously to a message, just call `sendResponse` once you have the response, and return `false` to indicate it's done. To respond asynchronously, return `true` to keep the `sendResponse` callback active until you are ready to use it. Async functions are not supported because they return a Promise, which is not supported.
+
+To send a request to a content script, specify which tab the request applies to as shown in the following. This example works in service workers, popups, and chrome-extension:// pages opened as a tab.
+
+```
+(async () => {
+  const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+  const response = await chrome.tabs.sendMessage(tab.id, {greeting: "hello"});
+  // do something with response here, not outside the function
+  console.log(response);
+})();
+```
+To receive the message, set up a [`runtime.onMessage`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onMessage) event listener. These use the same code in both extensions and content scripts:
+
+content-script.js or service-worker.js:
+
+```
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    if (request.greeting === "hello")
+      sendResponse({farewell: "goodbye"});
+  }
+);
+```
+In the previous example, `sendResponse()` was called synchronously. To use `sendResponse()` asynchronously, add `return true;` to the `onMessage` event handler.
+
+If multiple pages are listening for `onMessage` events, only the first to call `sendResponse()` for a particular event will succeed in sending the response. All other responses to that event will be ignored.
+
+Long-lived connections
+----------------------
+
+To create a reusable long-lived message passing channel, call [`runtime.connect()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connect) to pass messages from a content script to an extension page, or [`tabs.connect()`](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-connect) to pass messages from an extension page to a content script. You can name your channel to distinguish between different types of connections.
+
+One potential use case for a long-lived connection is an automatic form-filling extension. The content script might open a channel to the extension page for a specific login, and send a message to the extension for each input element on the page to request the form data to fill in. The shared connection allows the extension to share state between extension components.
+
+When establishing a connection, each end is assigned a [`runtime.Port`](https://developer.chrome.com/docs/extensions/reference/api/runtime#type-Port) object for sending and receiving messages through that connection.
+
+Use the following code to open a channel from a content script, and send and listen for messages:
+
+content-script.js:
+
+```
+var port = chrome.runtime.connect({name: "knockknock"});
+port.postMessage({joke: "Knock knock"});
+port.onMessage.addListener(function(msg) {
+  if (msg.question === "Who's there?")
+    port.postMessage({answer: "Madame"});
+  else if (msg.question === "Madame who?")
+    port.postMessage({answer: "Madame... Bovary"});
+});
+```
+To send a request from the extension to a content script, replace the call to `runtime.connect()` in the previous example with [`tabs.connect()`](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-connect).
+
+To handle incoming connections for either a content script or an extension page, set up a [`runtime.onConnect`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnect) event listener. When another part of your extension calls `connect()`, it activates this event and the [`runtime.Port`](https://developer.chrome.com/docs/extensions/reference/api/runtime#type-Port) object. The code for responding to incoming connections looks like this:
+
+service-worker.js:
+
+```
+chrome.runtime.onConnect.addListener(function(port) {
+  console.assert(port.name === "knockknock");
+  port.onMessage.addListener(function(msg) {
+    if (msg.joke === "Knock knock")
+      port.postMessage({question: "Who's there?"});
+    else if (msg.answer === "Madame")
+      port.postMessage({question: "Madame who?"});
+    else if (msg.answer === "Madame... Bovary")
+      port.postMessage({question: "I don't get it."});
+  });
+});
+```
+
+### Port lifetime
+
+Ports are designed as a two-way communication method between different parts of the extension. A top-level frame is the smallest part of an extension that can use a port. When part of an extension calls [`tabs.connect()`](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-connect), [`runtime.connect()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connect) or [`runtime.connectNative()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connectNative), it creates a [Port](https://developer.chrome.com/docs/extensions/reference/api/runtime#type-Port) that can immediately send messages using [`postMessage()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#property-Port-postMessage).
+
+If there are multiple frames in a tab, calling [`tabs.connect()`](https://developer.chrome.com/docs/extensions/reference/api/tabs#method-connect) invokes the [`runtime.onConnect`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnect) event once for each frame in the tab. Similarly, if [`runtime.connect()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connect) is called, then the `onConnect` event can fire once for every frame in the extension process.
+
+You might want to find out when a connection is closed, for example if you're maintaining separate states for each open port. To do this, listen to the [`runtime.Port.onDisconnect`](https://developer.chrome.com/docs/extensions/api/reference/runtime#property-Port-onDisconnect) event. This event fires when there are no valid ports at the other end of the channel, which can have any of the following causes:
+
+*   There are no listeners for [`runtime.onConnect`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnect) at the other end.
+*   The tab containing the port is unloaded (for example, if the tab is navigated).
+*   The frame where `connect()` was called has unloaded.
+*   All frames that received the port (via [`runtime.onConnect`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnect)) have unloaded.
+*   [`runtime.Port.disconnect()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#property-Port-disconnect) is called by _the other end_. If a `connect()` call results in multiple ports at the receiver's end, and `disconnect()` is called on any of these ports, then the `onDisconnect` event only fires at the sending port, not at the other ports.
+
+Cross-extension messaging
+-------------------------
+
+In addition to sending messages between different components in your extension, you can use the messaging API to communicate with other extensions. This lets you expose a public API for other extensions to use.
+
+To listen for incoming requests and connections from other extensions, use the [`runtime.onMessageExternal`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onMessageExternal) or [`runtime.onConnectExternal`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnectExternal) methods. Here's an example of each:
+
+service-worker.js
+
+```
+// For a single request:
+chrome.runtime.onMessageExternal.addListener(
+  function(request, sender, sendResponse) {
+    if (sender.id === blocklistedExtension)
+      return;  // don't allow this extension access
+    else if (request.getTargetData)
+      sendResponse({targetData: targetData});
+    else if (request.activateLasers) {
+      var success = activateLasers();
+      sendResponse({activateLasers: success});
+    }
+  });
+
+// For long-lived connections:
+chrome.runtime.onConnectExternal.addListener(function(port) {
+  port.onMessage.addListener(function(msg) {
+    // See other examples for sample onMessage handlers.
+  });
+});
+```
+To send a message to another extension, pass the ID of the extension you want to communicate with as follows:
+
+service-worker.js
+
+```
+// The ID of the extension we want to talk to.
+var laserExtensionId = "abcdefghijklmnoabcdefhijklmnoabc";
+
+// For a minimal request:
+chrome.runtime.sendMessage(laserExtensionId, {getTargetData: true},
+  function(response) {
+    if (targetInRange(response.targetData))
+      chrome.runtime.sendMessage(laserExtensionId, {activateLasers: true});
+  }
+);
+
+// For a long-lived connection:
+var port = chrome.runtime.connect(laserExtensionId);
+port.postMessage(...);
+```
+
+Send messages from web pages
+----------------------------
+
+Extensions can also receive and respond to messages from other web pages, but can't send messages to web pages. To send messages from a web page to an extension, specify in your `manifest.json` which websites you want to communicate with using the [`"externally_connectable"`](https://developer.chrome.com/docs/extensions/reference/manifest/externally-connectable) manifest key. For example:
+
+manifest.json
+
+```
+"externally_connectable": {
+  "matches": ["https://*.example.com/*"]
+}
+```
+This exposes the messaging API to any page that matches the URL patterns you specify. The URL pattern must contain at least a [second-level domain](https://wikipedia.org/wiki/Second-level_domain); that is, hostname patterns such as "\*", "\*.com", "\*.co.uk", and "\*.appspot.com" are not supported. Starting in Chrome 107, you can use `<all_urls>` to access all domains. Note that because it affects all hosts, Chrome web store reviews for extensions that use it [may take longer](https://developer.chrome.com/docs/webstore/review-process#review-time-factors).
+
+Use the [`runtime.sendMessage()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-sendMessage) or [`runtime.connect()`](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connect) APIs to send a message to a specific app or extension. For example:
+
+webpage.js
+
+```
+// The ID of the extension we want to talk to.
+const editorExtensionId = 'abcdefghijklmnoabcdefhijklmnoabc';
+
+// Check if extension is installed
+if (chrome && chrome.runtime) {
+  // Make a request:
+  chrome.runtime.sendMessage(
+    editorExtensionId,
+    {
+      openUrlInEditor: url
+    },
+    (response) => {
+      if (!response.success) handleError(url);
+    }
+  );
+}
+```
+From your extension, listen to messages from web pages using the [`runtime.onMessageExternal`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onMessageExternal) or [`runtime.onConnectExternal`](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onConnectExternal) APIs as in [cross-extension messaging](http://developer.chrome.com/docs/extensions/develop/concepts/messaging#external). Here's an example:
+
+service-worker.js
+
+```
+chrome.runtime.onMessageExternal.addListener(
+  function(request, sender, sendResponse) {
+    if (sender.url === blocklistedWebsite)
+      return;  // don't allow this web page access
+    if (request.openUrlInEditor)
+      openUrl(request.openUrlInEditor);
+  });
+```
+
+Native messaging
+----------------
+
+Extensions [can exchange messages](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging#native-messaging-client) with native applications that are registered as a [native messaging host](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging#native-messaging-host). To learn more about this feature, see [Native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging).
+
+Security considerations
+-----------------------
+
+Here are a few security considerations related to messaging.
+
+### Content scripts are less trustworthy
+
+[Content scripts are less trustworthy](https://developer.chrome.com/docs/extensions/develop/security-privacy/stay-secure#content_scripts) than the extension service worker. For example, a malicious web page might be able to compromise the rendering process that runs the content scripts. Assume that messages from a content script might have been crafted by an attacker and make sure to [validate and sanitize all input](https://developer.chrome.com/docs/extensions/develop/security-privacy/stay-secure#sanitize). Assume any data sent to the content script might leak to the web page. Limit the scope of privileged actions that can be triggered by messages received from content scripts.
+
+### Cross-site scripting
+
+Make sure to protect your scripts against [cross-site scripting](https://wikipedia.org/wiki/Cross-site_scripting). When receiving data from an untrusted source such as user input, other websites through a content script, or an API, take care to avoid interpreting this as HTML or using it in a way which could allow unexpected code to run.
+
+Safer methods
+
+Use APIs that don't run scripts whenever possible:
+
+service-worker.js
+
+chrome.tabs.sendMessage(tab.id, {greeting: "hello"}, function(response) {
+  // JSON.parse doesn't evaluate the attacker's scripts.
+  var resp \= JSON.parse(response.farewell);
+});
+
+service-worker.js
+
+chrome.tabs.sendMessage(tab.id, {greeting: "hello"}, function(response) {
+  // innerText does not let the attacker inject HTML elements.
+  document.getElementById("resp").innerText \= response.farewell;
+});
+
+Unsafe methods
+
+Avoid using the following methods that make your extension vulnerable:
+
+service-worker.js
+
+chrome.tabs.sendMessage(tab.id, {greeting: "hello"}, function(response) {
+  // WARNING! Might be evaluating a malicious script!
+  var resp \= eval(\`(${response.farewell})\`);
+});
+
+service-worker.js
+
+chrome.tabs.sendMessage(tab.id, {greeting: "hello"}, function(response) {
+  // WARNING! Might be injecting a malicious script!
+  document.getElementById("resp").innerHTML \= response.farewell;
+});
+
+
+================================================
+File: /chrome-extension-core-concepts/storage-and-cookies.txt
+================================================
+Title: Storage and cookies
+
+URL Source: http://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies
+
+Markdown Content:
+Storage and cookies  |  Chrome Extensions  |  Chrome for Developers
+=============== 
+
+Storage and cookies
+===================
+
+Stay organized with collections Save and categorize content based on your preferences.
+
+Extensions can store cookies and access web storage APIs similarly to a normal website. However, in some cases these behave differently in extensions.
+
+See [`chrome.storage`](http://developer.chrome.com/docs/extensions/reference/storage) for information on the extension API.
+
+Storage
+-------
+
+It is often desirable to use web platform storage APIs in extensions. This section explores the behavior of these APIs in an extension context, which can sometimes differ with how they behave on the web.
+
+### Persistence
+
+Extension storage is not cleared when a user [clears browsing data](https://support.google.com/chrome/answer/2392709). This applies to any data stored using web storage APIs (such as [Local Storage](https://developer.mozilla.org/docs/Web/API/Window/localStorage) and [IndexedDB](https://developer.mozilla.org/docs/Web/API/IndexedDB_API)).
+
+By default, extensions are subject to the normal quota restrictions on storage, which can be checked by calling [`navigator.storage.estimate()`](https://developer.mozilla.org/docs/Web/API/StorageManager/estimate). Storage can also be evicted under heavy memory pressure, although this is rare. To avoid this:
+
+*   Request the `"unlimitedStorage"` permission, which affects both extension and web storage APIs and exempts extensions from both quota restrictions and eviction.
+*   Call [`navigator.storage.persist()`](https://developer.mozilla.org/docs/Web/API/StorageManager/persist) for protection against eviction.
+
+Extension storage is shared across the extension's origin including the extension service worker, any extension pages (including popups and the side panel), and offscreen documents. In content scripts, calling web storage APIs accesses data from the host page the content script is injected on and not the extension.
+
+### Access in service workers
+
+The [IndexedDB](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and [Cache Storage](https://developer.mozilla.org/docs/Web/API/CacheStorage) APIs are accessible in service workers. However, [Local Storage](https://developer.mozilla.org/docs/Web/API/Window/localStorage) and [Session Storage](https://developer.mozilla.org/docs/Web/API/Window/sessionStorage) are not.
+
+If you need to access Local Storage or Session Storage from the service worker, use an [offscreen document](http://developer.chrome.com/docs/extensions/reference/offscreen).
+
+### Partitioning
+
+Partitioning is where keys are introduced for stored data to limit where it can be accessed. Storage has historically been keyed by origin.
+
+Starting in Chrome 115, [storage partitioning](http://developer.chrome.com/docs/privacy-sandbox/storage-partitioning) introduces changes to how partitioning keys are defined to prevent certain types of cross-site tracking. In practice, this means that if site A embeds an iframe containing site B, site B won't be able to access the same storage it would usually have when navigated to directly.
+
+To mitigate the impact of this in extensions, two exemptions apply:
+
+*   If a page with the `chrome-extension://` scheme is embedded in any site, storage partitioning won't apply, and the extension will have access to its top-level partition.
+*   If a page with the `chrome-extension://` scheme includes an iframe, and the extension has [host permissions](http://developer.chrome.com/docs/extensions/mv3/declare_permissions) for the site it is embedding, that site will also have access to its top-level partition.
+
+Cookies
+-------
+
+Cookies provide a way to store key-value pairs associated with a specific domain and path. They have limited value in extensions but understanding their behavior can be useful if you have a specific use case or have bundled a third-party script which uses them in its implementation.
+
+### Secure cookies
+
+The [`Secure`](https://developer.mozilla.org/docs/Web/HTTP/Cookies#restrict_access_to_cookies) cookie attribute is only supported for the `https://` scheme. Consequently, `chrome-extension://` pages are not able to set cookies with this attribute.
+
+This also means that extension pages cannot use other cookie attributes where the `Secure` attribute is required:
+
+*   [`SameSite=None`](https://web.dev/samesite-cookies-explained)
+*   [`Partitioned`](http://developer.chrome.com/docs/privacy-sandbox/chips)
+
+### Partitioning and SameSite behavior
+
+**Note:** When an extension embeds a third-party site, that site will use the extension origin as the partition key. This means the site won't be able access the same cookies as if it were navigated to directly. See [https://crbug.com/1463991](https://crbug.com/1463991).
+
+Cookies set on chrome-extension:// pages always use [`SameSite=Lax`](https://web.dev/samesite-cookies-explained). Consequently, cookies set by an extension on its own origin can never be accessed in frames and partitioning is not relevant.
+
+For cookies associated with third-party sites, such as for a third-party site loaded in a frame on an extension page, or a request made from an extension page to a third-party origin, cookies behave the same as the web except in two ways:
+
+*   Third-party cookies are never blocked even in subframes if the top-level page for a given tab is a `chrome-extension://` page.
+*   Requests from an extension to a third-party are treated as same-site if the extension has host permissions for the third-party. This means `SameSite=Strict` cookies can be sent. Note that this only applies to network requests, not access through `document.cookie` in JavaScript, and does not apply if third-party cookies are blocked.
+
+Note that settings around third-party cookies are affected by the Privacy Sandbox work and are [adjusted according to its timeline](https://privacysandbox.com/open-web/#open-web-timeline-3pc).
+
+The [`chrome.cookies`](http://developer.chrome.com/docs/extensions/reference/cookies) API provides control over the partition key to use with each API method. For more information, see the [API reference](http://developer.chrome.com/docs/extensions/reference/cookies#partitioning).
+
+Except as otherwise noted, the content of this page is licensed under the [Creative Commons Attribution 4.0 License](https://creativecommons.org/licenses/by/4.0/), and code samples are licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0). For details, see the [Google Developers Site Policies](https://developers.google.com/site-policies). Java is a registered trademark of Oracle and/or its affiliates.
+
+Last updated 2023-09-28 UTC.
+
+\[\[\["Easy to understand","easyToUnderstand","thumb-up"\],\["Solved my problem","solvedMyProblem","thumb-up"\],\["Other","otherUp","thumb-up"\]\],\[\["Missing the information I need","missingTheInformationINeed","thumb-down"\],\["Too complicated / too many steps","tooComplicatedTooManySteps","thumb-down"\],\["Out of date","outOfDate","thumb-down"\],\["Samples / code issue","samplesCodeIssue","thumb-down"\],\["Other","otherDown","thumb-down"\]\],\["Last updated 2023-09-28 UTC."\],\[\],\[\]\]
+
+*   ### Contribute
+    
+    *   [File a bug](https://issuetracker.google.com/issues/new?component=1400036&template=1897236)
+    *   [See open issues](https://issuetracker.google.com/issues?q=status:open%20componentid:1400036&s=created_time:desc)
+*   ### Related content
+    
+    *   [Chromium updates](https://blog.chromium.org/)
+    *   [Case studies](http://developer.chrome.com/case-studies)
+    *   [Archive](http://developer.chrome.com/deprecated)
+    *   [Podcasts & shows](https://web.dev/shows)
+*   ### Follow
+    
+    *   [@ChromiumDev on X](https://twitter.com/ChromiumDev)
+    *   [YouTube](https://www.youtube.com/user/ChromeDevelopers)
+    *   [Chrome for Developers on LinkedIn](https://www.linkedin.com/showcase/chrome-for-developers)
+    *   [RSS](http://developer.chrome.com/static/blog/feed.xml)
+
+*   [Terms](http://policies.google.com/terms)
+*   [Privacy](http://policies.google.com/privacy)
+*   [Manage cookies](http://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies#)
+
+*   English
+*   Deutsch
+*   Español – América Latina
+*   Français
+*   Indonesia
+*   Italiano
+*   Nederlands
+*   Polski
+*   Português – Brasil
+*   Tiếng Việt
+*   Türkçe
+*   Русский
+*   עברית
+*   العربيّة
+*   فارسی
+*   हिंदी
+*   বাংলা
+*   ภาษาไทย
+*   中文 – 简体
+*   中文 – 繁體
+*   日本語
+*   한국어
+
+
+================================================
+File: /front-end/eslint.config.js
+================================================
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  { ignores: ['dist'] },
+  {
+    extends: [js.configs.recommended, ...tseslint.configs.recommended],
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+    },
+    plugins: {
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
+    rules: {
+      ...reactHooks.configs.recommended.rules,
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
+  }
+);
+
+
+================================================
+File: /front-end/index.html
+================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+
+================================================
+File: /front-end/manifest.json
+================================================
+{
+  "manifest_version": 3,
+  "name": "Markdown Converter",
+  "version": "1.0.0",
+  "description": "Convert web pages to markdown with history and collections",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
+
+================================================
+File: /front-end/package.json
+================================================
+{
+  "name": "vite-react-typescript-starter",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.344.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.1",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^9.9.1",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.11",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.3.0",
+    "vite": "^5.4.2"
+  }
+}
+
+
+================================================
+File: /front-end/postcss.config.js
+================================================
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+
+
+================================================
+File: /front-end/tailwind.config.js
+================================================
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+
+================================================
+File: /front-end/tsconfig.app.json
+================================================
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+
+
+================================================
+File: /front-end/tsconfig.json
+================================================
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+
+
+================================================
+File: /front-end/tsconfig.node.json
+================================================
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+
+
+================================================
+File: /front-end/vite.config.ts
+================================================
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  optimizeDeps: {
+    exclude: ['lucide-react'],
+  },
+});
+
+
+================================================
+File: /front-end/.gitignore
+================================================
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+
+================================================
+File: /front-end/src/App.tsx
+================================================
+import React, { useState, useCallback } from 'react';
+import { Header } from './components/Header';
+import { ConvertTab } from './components/ConvertTab';
+import { HistoryTab } from './components/HistoryTab';
+import { Toast } from './components/Toast';
+import { MarkdownEntry, Collection, ToastMessage } from './types';
+
+function App() {
+  const [activeTab, setActiveTab] = useState('convert');
+  const [entries, setEntries] = useState<MarkdownEntry[]>([]);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = useCallback((message: string, type: ToastMessage['type'] = 'info') => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { id, message, type }]);
+  }, []);
+
+  const handleSave = useCallback((entry: Omit<MarkdownEntry, 'id' | 'timestamp'>) => {
+    const newEntry: MarkdownEntry = {
+      ...entry,
+      id: Date.now().toString(),
+      timestamp: new Date().toISOString(),
+      selected: false,
+    };
+    setEntries(prev => [newEntry, ...prev]);
+    showToast('Markdown saved successfully!', 'success');
+  }, [showToast]);
+
+  const handleToggleSelect = useCallback((id: string) => {
+    setEntries(prev => prev.map(entry =>
+      entry.id === id ? { ...entry, selected: !entry.selected } : entry
+    ));
+  }, []);
+
+  const handleAddToCollection = useCallback((selectedEntries: MarkdownEntry[], name: string) => {
+    const newCollection: Collection = {
+      id: Date.now().toString(),
+      type: 'collection',
+      title: name,
+      content: '',
+      url: '',
+      timestamp: new Date().toISOString(),
+      entries: selectedEntries.map(entry => ({ ...entry, selected: false })),
+    };
+    
+    setEntries(prev => [
+      newCollection,
+      ...prev.map(entry => ({ ...entry, selected: false }))
+    ]);
+    
+    showToast(`Collection "${name}" created with ${selectedEntries.length} items`, 'success');
+  }, [showToast]);
+
+  const handleDelete = useCallback((id: string) => {
+    setEntries(prev => prev.filter(entry => entry.id !== id));
+    showToast('Entry deleted successfully!', 'success');
+  }, [showToast]);
+
+  const handleDismissToast = useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  }, []);
+
+  return (
+    <div className="w-[600px] h-[600px] bg-gray-50">
+      <Header activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      <main className="relative">
+        {activeTab === 'convert' && (
+          <ConvertTab onSave={handleSave} />
+        )}
+        
+        {activeTab === 'history' && (
+          <HistoryTab
+            entries={entries}
+            onToggleSelect={handleToggleSelect}
+            onAddToCollection={handleAddToCollection}
+            onDelete={handleDelete}
+          />
+        )}
+
+        <div className="fixed bottom-4 right-4 space-y-2 w-72">
+          {toasts.map(toast => (
+            <Toast
+              key={toast.id}
+              message={toast}
+              onDismiss={handleDismissToast}
+            />
+          ))}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+
+================================================
+File: /front-end/src/index.css
+================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+================================================
+File: /front-end/src/main.tsx
+================================================
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);
+
+
+================================================
+File: /front-end/src/vite-env.d.ts
+================================================
+/// <reference types="vite/client" />
+
+
+================================================
+File: /front-end/src/components/CollectionPreview.tsx
+================================================
+import React from 'react';
+import { Collection } from '../types';
+import { FileText } from 'lucide-react';
+
+interface CollectionPreviewProps {
+  collection: Collection;
+}
+
+export function CollectionPreview({ collection }: CollectionPreviewProps) {
+  return (
+    <div className="space-y-3">
+      <h4 className="font-medium text-gray-700">Collection Contents:</h4>
+      <div className="space-y-2">
+        {collection.entries.map(entry => (
+          <div key={entry.id} className="flex items-center space-x-2 text-sm text-gray-600">
+            <FileText className="w-4 h-4" />
+            <span>{entry.title}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+================================================
+File: /front-end/src/components/ConvertTab.tsx
+================================================
+import React, { useState } from 'react';
+import { FileDown, Eye, Pencil, Save } from 'lucide-react';
+import { MarkdownEntry } from '../types';
+
+interface ConvertTabProps {
+  onSave: (entry: Omit<MarkdownEntry, 'id' | 'timestamp'>) => void;
+}
+
+export function ConvertTab({ onSave }: ConvertTabProps) {
+  const [mode, setMode] = useState<'preview' | 'edit'>('preview');
+  const [content, setContent] = useState('');
+  const [title, setTitle] = useState('');
+
+  // Add sample data for testing
+  const handleConvert = async () => {
+    setTitle('Sample Page');
+    setContent('# Sample Page\n\nThis is some sample markdown content.');
+  };
+
+  const handleSave = () => {
+    if (!title.trim() || !content.trim()) {
+      return;
+    }
+    
+    onSave({
+      title,
+      content,
+      url: 'https://example.com/sample',
+    });
+    
+    // Clear the form
+    setTitle('');
+    setContent('');
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex justify-between items-center">
+        <div className="flex space-x-2">
+          <button
+            onClick={handleConvert}
+            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            <FileDown className="w-4 h-4" />
+            <span>Convert Page</span>
+          </button>
+          <button
+            onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            {mode === 'preview' ? (
+              <>
+                <Pencil className="w-4 h-4" />
+                <span>Edit</span>
+              </>
+            ) : (
+              <>
+                <Eye className="w-4 h-4" />
+                <span>Preview</span>
+              </>
+            )}
+          </button>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={!title.trim() || !content.trim()}
+          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Save className="w-4 h-4" />
+          <span>Save</span>
+        </button>
+      </div>
+
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Enter title..."
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+      />
+
+      {mode === 'edit' ? (
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
+          placeholder="Markdown content..."
+        />
+      ) : (
+        <div className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md overflow-auto prose prose-sm max-w-none">
+          <pre className="whitespace-pre-wrap">{content}</pre>
+        </div>
+      )}
+    </div>
+  );
+}
+
+================================================
+File: /front-end/src/components/Header.tsx
+================================================
+import React from 'react';
+import { FileDown, History, Layout, Settings } from 'lucide-react';
+
+interface HeaderProps {
+  activeTab: string;
+  onTabChange: (tab: string) => void;
+}
+
+export function Header({ activeTab, onTabChange }: HeaderProps) {
+  return (
+    <header className="bg-white border-b border-gray-200 px-4 py-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Layout className="w-6 h-6 text-indigo-600" />
+          <h1 className="text-xl font-semibold text-gray-900">MD Convert</h1>
+        </div>
+        <nav className="flex space-x-4">
+          <button
+            onClick={() => onTabChange('convert')}
+            className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors
+              ${activeTab === 'convert' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            <FileDown className="w-4 h-4" />
+            <span>Convert</span>
+          </button>
+          <button
+            onClick={() => onTabChange('history')}
+            className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors
+              ${activeTab === 'history' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            <History className="w-4 h-4" />
+            <span>History</span>
+          </button>
+          <button
+            onClick={() => onTabChange('settings')}
+            className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors
+              ${activeTab === 'settings' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'}`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>Settings</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+================================================
+File: /front-end/src/components/HistoryTab.tsx
+================================================
+import React, { useState } from 'react';
+import { Download, FolderPlus, Trash2, Eye } from 'lucide-react';
+import { MarkdownEntry, Collection } from '../types';
+import { PreviewModal } from './PreviewModal';
+
+interface HistoryTabProps {
+  entries: MarkdownEntry[];
+  onToggleSelect: (id: string) => void;
+  onAddToCollection: (entries: MarkdownEntry[], name: string) => void;
+  onDelete: (id: string) => void;
+}
+
+export function HistoryTab({ entries, onToggleSelect, onAddToCollection, onDelete }: HistoryTabProps) {
+  const [collectionName, setCollectionName] = useState('');
+  const [previewEntry, setPreviewEntry] = useState<MarkdownEntry | null>(null);
+  const selectedEntries = entries.filter(entry => entry.selected);
+
+  const handleAddToCollection = () => {
+    if (selectedEntries.length === 0 || !collectionName.trim()) return;
+    onAddToCollection(selectedEntries, collectionName.trim());
+    setCollectionName('');
+  };
+
+  return (
+    <div className="p-4">
+      <div className="flex items-center space-x-4 mb-4">
+        <input
+          type="text"
+          value={collectionName}
+          onChange={(e) => setCollectionName(e.target.value)}
+          placeholder="Collection name..."
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        />
+        <button
+          onClick={handleAddToCollection}
+          disabled={selectedEntries.length === 0 || !collectionName.trim()}
+          className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FolderPlus className="w-4 h-4" />
+          <span>Add to Collection ({selectedEntries.length} selected)</span>
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        {entries.map((entry) => (
+          <div
+            key={entry.id}
+            className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-3">
+                {!entry.type && (
+                  <input
+                    type="checkbox"
+                    checked={entry.selected}
+                    onChange={() => onToggleSelect(entry.id)}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  />
+                )}
+                <h3 className="text-lg font-medium text-gray-900">
+                  {entry.type === 'collection' ? `📁 ${entry.title}` : entry.title}
+                </h3>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setPreviewEntry(entry)}
+                  className="p-2 text-gray-500 hover:text-indigo-600 transition-colors"
+                  title="Preview"
+                >
+                  <Eye className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {/* Download logic */}}
+                  className="p-2 text-gray-500 hover:text-indigo-600 transition-colors"
+                  title="Download"
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(entry.id)}
+                  className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                  title="Delete"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <p className="text-sm text-gray-500">
+              {entry.type === 'collection' 
+                ? `${(entry as Collection).entries.length} items` 
+                : `Converted on ${new Date(entry.timestamp).toLocaleString()}`}
+            </p>
+            {!entry.type && (
+              <p className="text-sm text-gray-500 truncate">
+                {entry.url}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <PreviewModal 
+        entry={previewEntry} 
+        onClose={() => setPreviewEntry(null)} 
+      />
+    </div>
+  );
+}
+
+================================================
+File: /front-end/src/components/PreviewModal.tsx
+================================================
+import React from 'react';
+import { X } from 'lucide-react';
+import { MarkdownEntry, Collection } from '../types';
+import { CollectionPreview } from './CollectionPreview';
+
+interface PreviewModalProps {
+  entry: MarkdownEntry | null;
+  onClose: () => void;
+}
+
+export function PreviewModal({ entry, onClose }: PreviewModalProps) {
+  if (!entry) return null;
+
+  const isCollection = entry.type === 'collection';
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-[500px] max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {isCollection ? `Collection: ${entry.title}` : entry.title}
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="p-4 overflow-y-auto flex-1">
+          {isCollection ? (
+            <CollectionPreview collection={entry as Collection} />
+          ) : (
+            <pre className="whitespace-pre-wrap font-mono text-sm">
+              {entry.content}
+            </pre>
+          )}
+        </div>
+        
+        <div className="border-t p-4 text-sm text-gray-500">
+          <p>Created: {new Date(entry.timestamp).toLocaleString()}</p>
+          {!isCollection && <p className="truncate">Source: {entry.url}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+================================================
+File: /front-end/src/components/Toast.tsx
+================================================
+import React, { useEffect } from 'react';
+import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
+import { ToastMessage } from '../types';
+
+interface ToastProps {
+  message: ToastMessage;
+  onDismiss: (id: string) => void;
+}
+
+export function Toast({ message, onDismiss }: ToastProps) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onDismiss(message.id);
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [message.id, onDismiss]);
+
+  const icons = {
+    success: <CheckCircle className="w-5 h-5 text-green-500" />,
+    error: <AlertCircle className="w-5 h-5 text-red-500" />,
+    info: <Info className="w-5 h-5 text-blue-500" />
+  };
+
+  const colors = {
+    success: 'bg-green-50 text-green-800 border-green-200',
+    error: 'bg-red-50 text-red-800 border-red-200',
+    info: 'bg-blue-50 text-blue-800 border-blue-200'
+  };
+
+  return (
+    <div className={`flex items-center justify-between p-4 border rounded-lg ${colors[message.type]}`}>
+      <div className="flex items-center space-x-3">
+        {icons[message.type]}
+        <p className="text-sm font-medium">{message.message}</p>
+      </div>
+      <button
+        onClick={() => onDismiss(message.id)}
+        className="text-gray-400 hover:text-gray-500"
+      >
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  );
+}
+
+================================================
+File: /front-end/src/types/index.ts
+================================================
+export interface MarkdownEntry {
+  id: string;
+  title: string;
+  content: string;
+  url: string;
+  timestamp: string;
+  selected?: boolean;
+  type?: 'entry' | 'collection';
+}
+
+export interface Collection extends MarkdownEntry {
+  type: 'collection';
+  entries: MarkdownEntry[];
+}
+
+export interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
+
+================================================
+File: /front-end/.bolt/config.json
+================================================
+{
+  "template": "bolt-vite-react-ts"
+}
+
+
+================================================
+File: /front-end/.bolt/prompt
+================================================
+For all designs I ask you to make, have them be beautiful, not cookie cutter. Make webpages that are fully featured and worthy for production.
+
+By default, this template supports JSX syntax with Tailwind CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.
+
+Use icons from lucide-react for logos.
+
+Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
+
+
+
