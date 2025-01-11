@@ -39,5 +39,3 @@ Cascade has the ability to:
 These should demonstrate the power of the Windsurf Editor to jointly reason deeply about your codebases, access a broad set of tools, and incorporate your own actions as a developer. 
 
 Cascade will not always be perfect, and often you may find yourself asking Cascade follow ups to fix unexpected side effects, or just taking over entirely and ignoring the AI for more complex tasks. That is totally okay! Cascade is the most powerful AI assistant that you can still trust and iterate with.
-
-# 
