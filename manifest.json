@@ -8,11 +8,11 @@
     "storage"
   ],
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "front-end/index.html"
   },
   "icons": {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "front-end/icons/icon16.png",
+    "48": "front-end/icons/icon48.png",
+    "128": "front-end/icons/icon128.png"
   }
 }

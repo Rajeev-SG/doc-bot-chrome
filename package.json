@@ -1,0 +1,15 @@
+{
+  "name": "doc-bot-chrome",
+  "version": "0.1.0",
+  "description": "Chrome extension for converting web pages to markdown",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "canvas": "^3.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
