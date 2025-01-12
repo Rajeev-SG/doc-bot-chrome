@@ -30,8 +30,8 @@ export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
     setError(null);
 
     try {
-      // Get the current active tab
-      const [tab] = await window.chrome.tabs.query({ active: true, currentWindow: true });
+      // Get the current active tab across all windows
+      const [tab] = await window.chrome.tabs.query({ active: true, lastFocusedWindow: true });
       
       if (!tab?.id || !tab.url) {
         throw new Error('No active tab found');

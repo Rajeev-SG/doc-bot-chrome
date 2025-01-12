@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-01-12
+
+### Added
+- Jina Reader API integration for better markdown conversion
+- Download functionality for individual entries
+- Download functionality for collections (concatenated files)
+- Tab switching support in side panel
+- Broader host permissions for accessing any webpage
+
+### Fixed
+- Download functionality now working properly
+- Collection downloads now include all entries
+- Tab access issues when switching between tabs
+- Error handling for inaccessible pages
+
+### Changed
+- Updated manifest permissions for better tab access
+- Improved error messages for failed conversions
+
 ## [0.4.0] - 2025-01-12
 
 ### Added
@@ -116,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Patch version: Bug fixes and minor improvements
 
 ### Version Notes
+- 0.5.0: Added Jina Reader API integration and download functionality
 - 0.4.0: Added side panel interface and basic conversion functionality
 - 0.3.0: Added Jina Reader API integration
 - 0.2.0: Added core functionality (content script, storage, tests)

@@ -27,27 +27,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Convert page to markdown
+// Convert page to markdown using Jina Reader API
 async function handlePageConversion(tabId, url) {
   try {
-    // Execute content script to get page content
-    const [{ result }] = await chrome.scripting.executeScript({
+    // First get the page title
+    const [{ result: pageInfo }] = await chrome.scripting.executeScript({
       target: { tabId },
-      func: () => {
-        const title = document.title;
-        const content = document.body.innerText;
-        return { title, content };
-      }
+      func: () => ({
+        title: document.title
+      })
     });
 
-    // Convert content to markdown (simple example)
-    const markdown = `# ${result.title}\n\n${result.content}`;
+    // Use Jina Reader API to convert the page
+    const jinaUrl = `https://r.jina.ai/${url}`;
+    const response = await fetch(jinaUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Jina API error: ${response.status} ${response.statusText}`);
+    }
 
-    return {
-      title: result.title,
+    const markdown = await response.text();
+
+    // Store the conversion
+    const data = {
+      title: pageInfo.title,
       content: markdown,
-      url
+      url,
+      timestamp: Date.now()
     };
+
+    await chrome.storage.local.set({
+      [`conversion_${Date.now()}`]: data
+    });
+
+    return data;
   } catch (error) {
     console.error('Error converting page:', error);
     throw error;

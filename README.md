@@ -4,37 +4,36 @@ A Chrome extension that converts web pages to Markdown format, with storage capa
 
 ## Features
 
-### Working Features
-- Page Conversion: Convert any web page to markdown format
+- Page Conversion: Convert any web page to markdown format using Jina Reader API
 - Save/Edit: Save converted content and edit it later
 - Preview Mode: Toggle between edit and preview modes
 - History: View and manage previously converted pages
 - Collections: Organize your converted content
-- Delete: Remove unwanted conversions
+  - Create collections of related conversions
+  - Download collections as single markdown files
+- Download: Download individual conversions or entire collections
 - Side Panel Interface: Convenient access through Chrome's side panel
-
-### Known Issues
-- Jina API Integration: Currently using basic text conversion instead of Jina's markdown formatting
-- Download: Download functionality is not working
 
 ## Project Structure
 
 ```
 doc-bot-chrome/
-├── manifest.json          # Chrome extension manifest
-├── background.js         # Background service worker
-├── vite.config.ts       # Vite build configuration
-├── front-end/           # React application
-│   ├── src/            # Source code
+├── manifest.json        # Chrome extension manifest
+├── background.js       # Background service worker
+├── vite.config.ts     # Vite build configuration
+├── front-end/         # React application
+│   ├── src/          # Source code
 │   │   ├── components/ # React components
-│   │   ├── types/     # TypeScript types
-│   │   ├── App.tsx    # Main application
-│   │   └── main.tsx   # Entry point
-│   ├── icons/         # Extension icons
+│   │   │   ├── ConvertTab.tsx  # Page conversion UI
+│   │   │   ├── HistoryTab.tsx  # History management
+│   │   │   └── PreviewModal.tsx # Content preview
+│   │   ├── types/    # TypeScript types
+│   │   ├── App.tsx   # Main application
+│   │   └── main.tsx  # Entry point
+│   ├── icons/        # Extension icons
 │   └── sidepanel.html # Side panel entry point
-├── dist/               # Built extension
-├── test/              # Test files
-└── docs/              # Documentation
+├── dist/             # Built extension
+└── docs/            # Documentation
 ```
 
 ## Installation (Development)
@@ -58,35 +57,28 @@ doc-bot-chrome/
 4. Load in Chrome:
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode"
-   - Click "Load unpacked"
-   - Select the `doc-bot-chrome` directory
+   - Click "Load unpacked" and select the `dist` directory
 
 ## Usage
 
-1. Click the extension icon in Chrome's toolbar to open the side panel
-2. Navigate to any web page you want to convert
-3. Click "Convert Page" in the side panel
-4. The page will be converted to markdown format
-5. You can:
-   - Edit the content in markdown format
-   - Preview the rendered markdown
-   - Save the content
-   - Organize content into collections
-   - View conversion history
-   - Delete unwanted conversions
+1. Click the extension icon to open the side panel
+2. Navigate to any webpage you want to convert
+3. Click "Convert Page" to convert the current page to markdown
+4. Edit the title or content if needed
+5. Click "Save" to store the conversion
+6. Use the History tab to:
+   - View past conversions
+   - Create collections
+   - Download conversions or collections
+   - Delete entries
 
-## Development
+## Permissions
 
-- Run tests:
-  ```bash
-  npm test
-  ```
-
-- Build for production:
-  ```bash
-  npm run build
-  ```
-
-## Contributing
-
-Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+The extension requires the following permissions:
+- `tabs`: Access to browser tabs
+- `storage`: Store converted content
+- `scripting`: Execute content scripts
+- `sidePanel`: Show the side panel interface
+- Host permissions for:
+  - `https://r.jina.ai/*`: Access Jina Reader API
+  - `<all_urls>`: Access webpage content for conversion

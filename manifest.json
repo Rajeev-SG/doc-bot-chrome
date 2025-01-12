@@ -4,13 +4,15 @@
   "version": "1.0.0",
   "description": "Convert web pages to markdown with history and collections",
   "permissions": [
+    "tabs",
     "activeTab",
     "storage",
     "scripting",
     "sidePanel"
   ],
   "host_permissions": [
-    "https://r.jina.ai/*"
+    "https://r.jina.ai/*",
+    "<all_urls>"
   ],
   "action": {
     "default_title": "Convert to Markdown",

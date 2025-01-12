@@ -21,6 +21,47 @@ export function HistoryTab({ entries, onToggleSelect, onAddToCollection, onDelet
     setCollectionName('');
   };
 
+  const createEntryContent = (entry: MarkdownEntry) => {
+    return `---
+title: ${entry.title}
+url: ${entry.url}
+date: ${new Date(entry.timestamp).toISOString()}
+---
+
+${entry.content}
+
+`;
+  };
+
+  const handleDownload = (entry: MarkdownEntry | Collection) => {
+    let content = '';
+    let filename = '';
+
+    if ('type' in entry && entry.type === 'collection') {
+      // For collections, concatenate all entries with clear separation
+      content = `# Collection: ${entry.title}\n\n`;
+      content += (entry as Collection).entries.map((e: MarkdownEntry, index: number) => {
+        return `## File ${index + 1}: ${e.title}\n\n${createEntryContent(e)}`;
+      }).join('\n---\n\n');
+      filename = `${entry.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_collection.md`;
+    } else {
+      // For single entries
+      content = createEntryContent(entry as MarkdownEntry);
+      filename = `${entry.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.md`;
+    }
+    
+    // Create blob and download link
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="p-4">
       <div className="flex items-center space-x-4 mb-4">
@@ -70,7 +111,7 @@ export function HistoryTab({ entries, onToggleSelect, onAddToCollection, onDelet
                   <Eye className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => {/* Download logic */}}
+                  onClick={() => handleDownload(entry)}
                   className="p-2 text-gray-500 hover:text-indigo-600 transition-colors"
                   title="Download"
                 >
@@ -99,10 +140,9 @@ export function HistoryTab({ entries, onToggleSelect, onAddToCollection, onDelet
         ))}
       </div>
 
-      <PreviewModal 
-        entry={previewEntry} 
-        onClose={() => setPreviewEntry(null)} 
-      />
+      {previewEntry && (
+        <PreviewModal entry={previewEntry} onClose={() => setPreviewEntry(null)} />
+      )}
     </div>
   );
 }
