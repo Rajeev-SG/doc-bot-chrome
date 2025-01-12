@@ -5,7 +5,11 @@ export default {
     "./sidepanel.html"
   ],
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        'xs': '400px',
+      },
+    },
   },
   plugins: [],
 }

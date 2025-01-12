@@ -63,85 +63,100 @@ ${entry.content}
   };
 
   return (
-    <div className="p-4">
-      <div className="flex items-center space-x-4 mb-4">
-        <input
-          type="text"
-          value={collectionName}
-          onChange={(e) => setCollectionName(e.target.value)}
-          placeholder="Collection name..."
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
+    <div className="py-4 h-full flex flex-col">
+      <div className="flex items-center space-x-2 mb-4 px-4">
+        <div className="flex-1 min-w-0">
+          <input
+            type="text"
+            value={collectionName}
+            onChange={(e) => setCollectionName(e.target.value)}
+            placeholder="Collection name..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          />
+        </div>
         <button
           onClick={handleAddToCollection}
           disabled={selectedEntries.length === 0 || !collectionName.trim()}
-          className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
         >
-          <FolderPlus className="w-4 h-4" />
-          <span>Add to Collection ({selectedEntries.length} selected)</span>
+          <FolderPlus className="w-4 h-4 mr-1" />
+          <span className="hidden xs:inline">Add to Collection ({selectedEntries.length})</span>
+          <span className="inline xs:hidden">Add ({selectedEntries.length})</span>
         </button>
       </div>
 
-      <div className="space-y-4">
-        {entries.map((entry) => (
-          <div
-            key={entry.id}
-            className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-3">
-                {!entry.type && (
-                  <input
-                    type="checkbox"
-                    checked={entry.selected}
-                    onChange={() => onToggleSelect(entry.id)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                  />
-                )}
-                <h3 className="text-lg font-medium text-gray-900">
-                  {entry.type === 'collection' ? `📁 ${entry.title}` : entry.title}
-                </h3>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4">
+        <div className="space-y-4">
+          {entries.map((entry) => (
+            <div
+              key={entry.id}
+              className="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors bg-white"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  {!entry.type && (
+                    <input
+                      type="checkbox"
+                      checked={entry.selected}
+                      onChange={() => onToggleSelect(entry.id)}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded flex-shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-medium text-gray-900 truncate">
+                      {entry.type === 'collection' ? `📁 ${entry.title}` : entry.title}
+                    </h3>
+                    {!entry.type && (
+                      <>
+                        <p className="text-sm text-gray-500 truncate">
+                          {entry.url}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {new Date(entry.timestamp).toLocaleString()}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setPreviewEntry(entry)}
+                    className="inline-flex items-center p-2 text-gray-400 hover:text-gray-500"
+                    title="Preview"
+                  >
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDownload(entry)}
+                    className="inline-flex items-center p-2 text-gray-400 hover:text-gray-500"
+                    title="Download"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDelete(entry.id)}
+                    className="inline-flex items-center p-2 text-gray-400 hover:text-gray-500"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setPreviewEntry(entry)}
-                  className="p-2 text-gray-500 hover:text-indigo-600 transition-colors"
-                  title="Preview"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDownload(entry)}
-                  className="p-2 text-gray-500 hover:text-indigo-600 transition-colors"
-                  title="Download"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onDelete(entry.id)}
-                  className="p-2 text-gray-500 hover:text-red-600 transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              {entry.type === 'collection' && (
+                <div className="mt-2 text-sm text-gray-500">
+                  {(entry as Collection).entries.length} items
+                </div>
+              )}
             </div>
-            <p className="text-sm text-gray-500">
-              {entry.type === 'collection' 
-                ? `${(entry as Collection).entries.length} items` 
-                : `Converted on ${new Date(entry.timestamp).toLocaleString()}`}
-            </p>
-            {!entry.type && (
-              <p className="text-sm text-gray-500 truncate">
-                {entry.url}
-              </p>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {previewEntry && (
-        <PreviewModal entry={previewEntry} onClose={() => setPreviewEntry(null)} />
+        <PreviewModal
+          entry={previewEntry}
+          onClose={() => setPreviewEntry(null)}
+        />
       )}
     </div>
   );

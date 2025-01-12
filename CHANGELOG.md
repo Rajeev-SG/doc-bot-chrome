@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-01-12
+
+### Added
+- Custom 400px breakpoint in Tailwind config
+- Responsive text hiding for buttons below 400px
+- Proper overflow handling for side panel content
+- Improved Chrome storage integration
+- Better collection persistence
+- Automatic state saving
+
+### Fixed
+- Horizontal scrollbar appearing on narrow screens
+- UI elements disappearing on width reduction
+- Whitespace issues on larger screens
+- Button text visibility on different screen sizes
+- Storage persistence issues for collections
+- State management for stored entries
+
+### Changed
+- Improved responsive layout for all components
+- Better handling of container width and height
+- Enhanced button text display for small screens
+- Optimized storage operations
+- Refined collection management
+
 ## [0.5.0] - 2025-01-12
 
 ### Added
@@ -135,6 +160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Patch version: Bug fixes and minor improvements
 
 ### Version Notes
+- 0.6.0: Added responsive UI improvements and storage features
 - 0.5.0: Added Jina Reader API integration and download functionality
 - 0.4.0: Added side panel interface and basic conversion functionality
 - 0.3.0: Added Jina Reader API integration

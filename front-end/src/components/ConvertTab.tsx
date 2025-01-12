@@ -71,68 +71,81 @@ export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex space-x-2">
-          <button
-            onClick={handleConvert}
-            disabled={isConverting}
-            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileDown className="w-4 h-4" />
-            <span>{isConverting ? 'Converting...' : 'Convert Page'}</span>
-          </button>
+    <div className="py-4 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex-1">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Page title..."
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
           <button
             onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+            className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {mode === 'preview' ? (
               <>
-                <Pencil className="w-4 h-4" />
-                <span>Edit</span>
+                <Pencil className="w-4 h-4 mr-1" />
+                <span className="hidden xs:inline">Edit</span>
               </>
             ) : (
               <>
-                <Eye className="w-4 h-4" />
-                <span>Preview</span>
+                <Eye className="w-4 h-4 mr-1" />
+                <span className="hidden xs:inline">Preview</span>
               </>
             )}
           </button>
+          <button
+            onClick={handleConvert}
+            disabled={isConverting}
+            className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileDown className="w-4 h-4 mr-1" />
+            <span className="hidden xs:inline">{isConverting ? 'Converting...' : 'Convert'}</span>
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!content}
+            className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save className="w-4 h-4 mr-1" />
+            <span className="hidden xs:inline">Save</span>
+          </button>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={!title.trim() || !content.trim()}
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Save className="w-4 h-4" />
-          <span>Save</span>
-        </button>
       </div>
 
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Enter title..."
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-      />
-
-      {mode === 'preview' ? (
-        <div className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md overflow-auto prose prose-sm max-w-none">
-          <div className="whitespace-pre-wrap">{content}</div>
-        </div>
-      ) : (
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Markdown content..."
-          className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
-        />
-      )}
-
       {error && (
-        <div className="text-red-500 text-sm">{error}</div>
+        <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
+          {error}
+        </div>
       )}
+
+      <div className="flex-1 min-h-0">
+        {mode === 'preview' ? (
+          <div className="h-full overflow-y-auto bg-white border border-gray-200 rounded-md p-4">
+            {content ? (
+              <div className="prose prose-sm max-w-none">
+                {content}
+              </div>
+            ) : (
+              <div className="text-gray-500 text-sm">
+                Click "Convert" to fetch the page content
+              </div>
+            )}
+          </div>
+        ) : (
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="w-full h-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+            placeholder="Markdown content..."
+          />
+        )}
+      </div>
     </div>
   );
 };
