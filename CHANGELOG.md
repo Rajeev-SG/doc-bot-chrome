@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-01-12
+
+### Added
+- Persistent unsaved conversions between tab switches
+- Full-height text areas in edit and preview modes
+- Proper whitespace preservation in markdown preview
+
+### Fixed
+- Text area and preview container height issues
+- Content disappearing when switching tabs
+- Markdown preview formatting
+- Vertical space utilization
+
+### Changed
+- Improved container sizing strategy
+- Enhanced state management for unsaved content
+- Better markdown display formatting
+
 ## [0.6.0] - 2025-01-12
 
 ### Added
@@ -160,6 +178,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Patch version: Bug fixes and minor improvements
 
 ### Version Notes
+- 0.7.0: Added persistent unsaved conversions and full-height text areas
 - 0.6.0: Added responsive UI improvements and storage features
 - 0.5.0: Added Jina Reader API integration and download functionality
 - 0.4.0: Added side panel interface and basic conversion functionality

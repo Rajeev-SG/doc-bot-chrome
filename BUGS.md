@@ -11,6 +11,8 @@
 - [x] Download functionality working for both individual entries and collections
 - [x] Fixed UI responsiveness for different panel widths
 - [x] Fixed empty whitespace issues
+- [x] Fixed text area height in edit and preview modes
+- [x] Preserved unsaved conversions between tab switches
 - [ ] No loading states for async operations
 - [ ] No error recovery UI for failed operations
 - [ ] Limited feedback for successful operations
@@ -18,6 +20,7 @@
 ### Storage and State Management
 - [x] Basic Chrome storage integration implemented
 - [x] Collection management functionality added
+- [x] Unsaved conversions persist between tab switches
 - [ ] No data export functionality (besides downloads)
 - [ ] No backup/restore functionality
 - [ ] No data migration strategy

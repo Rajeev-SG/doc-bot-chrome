@@ -1,6 +1,11 @@
 # doc-bot-chrome
 
-A Chrome extension that converts web pages to Markdown format, with storage capabilities for managing converted content.
+A Chrome extension that converts web pages to Markdown format so they can be downloaded for consumption by LLM, with persistent local storage for converted content and the ability to compile converted pages into collections (single files ready for downloading).
+
+#### Conversion:
+![Doc Bot Chrome Extension](screenshot.png)
+#### Storage:
+![Doc Bot Chrome Extension](screenshot2.png)
 
 ## Features
 
@@ -15,10 +20,8 @@ A Chrome extension that converts web pages to Markdown format, with storage capa
 - Storage & Persistence:
   - Chrome storage integration for entries
   - Collection-based organization
-  - Automatic state persistence
+  - Persistent unsaved conversions between tab switches
   - Download backups of entries
-- Download: Download individual conversions or entire collections
-- Side Panel Interface: Convenient access through Chrome's side panel
 - Responsive UI: Adapts to different panel widths
   - Full text labels on wider screens (>400px)
   - Compact icon-only interface on narrow screens (≤400px)
@@ -37,6 +40,7 @@ doc-bot-chrome/
 │   │   │   ├── ConvertTab.tsx  # Page conversion UI
 │   │   │   ├── HistoryTab.tsx  # History management
 │   │   │   ├── Header.tsx     # Navigation header
+│   │   │   ├── Toast.tsx     # Notification system
 │   │   │   └── PreviewModal.tsx # Content preview
 │   │   ├── types/    # TypeScript types
 │   │   ├── App.tsx   # Main application
@@ -45,8 +49,6 @@ doc-bot-chrome/
 │   └── sidepanel.html # Side panel entry point
 ├── dist/             # Built extension
 └── docs/            # Documentation
-    ├── BUGS.md      # Known issues and improvements
-    └── CHANGELOG.md # Version history
 ```
 
 ## Installation (Development)
@@ -70,20 +72,22 @@ doc-bot-chrome/
 4. Load in Chrome:
    - Open Chrome and go to `chrome://extensions/`
    - Enable "Developer mode"
-   - Click "Load unpacked" and select the `dist` directory
+   - Click "Load unpacked" and select the `doc-bot-chrome` directory
 
 ## Usage
 
 1. Click the extension icon to open the side panel
 2. Navigate to any webpage you want to convert
-3. Click "Convert Page" to convert the current page to markdown
-4. Edit the title or content if needed
-5. Click "Save" to store the conversion
-6. Use the History tab to:
+3. Click "Convert" to convert the current page to markdown
+4. The converted content will be shown in preview mode
+5. Click "Edit" to make changes to the content
+6. Click "Save" to store the conversion
+7. Use the History tab to:
    - View past conversions
    - Create collections
    - Download conversions or collections
    - Delete entries
+8. Switch between tabs freely - unsaved conversions are preserved
 
 ## Permissions
 
@@ -98,8 +102,8 @@ The extension requires the following permissions:
 
 ## Known Issues and Future Plans
 
-See [BUGS.md](docs/BUGS.md) for known issues and planned improvements.
+See [BUGS.md](BUGS.md) for known issues and planned improvements.
 
 ## Version History
 
-See [CHANGELOG.md](docs/CHANGELOG.md) for version history and updates.
+See [CHANGELOG.md](CHANGELOG.md) for version history and updates.

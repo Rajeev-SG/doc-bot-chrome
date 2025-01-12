@@ -1,9 +1,11 @@
-import { type FC, useState } from 'react';
+import { type FC, useState, useEffect } from 'react';
 import { FileDown, Eye, Pencil, Save } from 'lucide-react';
 import { MarkdownEntry } from '../types';
 
 interface ConvertTabProps {
   onSave: (entry: Omit<MarkdownEntry, 'id' | 'timestamp'>) => void;
+  initialContent: { title: string; content: string; url: string; } | null;
+  onContentChange: (content: { title: string; content: string; url: string; } | null) => void;
 }
 
 interface ConversionResponse {
@@ -18,12 +20,33 @@ declare global {
   }
 }
 
-export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
+export const ConvertTab: FC<ConvertTabProps> = ({ onSave, initialContent, onContentChange }) => {
   const [mode, setMode] = useState<'preview' | 'edit'>('preview');
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   const [isConverting, setIsConverting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load initial content if available
+  useEffect(() => {
+    if (initialContent) {
+      setTitle(initialContent.title);
+      setContent(initialContent.content);
+    }
+  }, [initialContent]);
+
+  // Update parent state when content changes
+  useEffect(() => {
+    if (content || title) {
+      onContentChange({
+        title,
+        content,
+        url: window.location.href,
+      });
+    } else {
+      onContentChange(null);
+    }
+  }, [content, title, onContentChange]);
 
   const handleConvert = async () => {
     setIsConverting(true);
@@ -65,9 +88,10 @@ export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
       url: window.location.href,
     });
     
-    // Clear the form
+    // Clear the form and parent state
     setTitle('');
     setContent('');
+    onContentChange(null);
   };
 
   return (
@@ -124,15 +148,13 @@ export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
         </div>
       )}
 
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 flex flex-col min-h-[calc(100vh-200px)]">
         {mode === 'preview' ? (
-          <div className="h-full overflow-y-auto bg-white border border-gray-200 rounded-md p-4">
+          <div className="flex-1 overflow-y-auto bg-white border border-gray-200 rounded-md p-4">
             {content ? (
-              <div className="prose prose-sm max-w-none">
-                {content}
-              </div>
+              <pre className="font-mono text-sm whitespace-pre-wrap h-full">{content}</pre>
             ) : (
-              <div className="text-gray-500 text-sm">
+              <div className="text-gray-500 text-sm h-full">
                 Click "Convert" to fetch the page content
               </div>
             )}
@@ -141,7 +163,7 @@ export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full h-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm"
+            className="flex-1 p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm resize-none"
             placeholder="Markdown content..."
           />
         )}

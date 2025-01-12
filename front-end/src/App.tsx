@@ -9,6 +9,11 @@ function App() {
   const [activeTab, setActiveTab] = useState('convert');
   const [entries, setEntries] = useState<MarkdownEntry[]>([]);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [unsavedConversion, setUnsavedConversion] = useState<{
+    title: string;
+    content: string;
+    url: string;
+  } | null>(null);
 
   const showToast = useCallback((message: string, type: ToastMessage['type'] = 'info') => {
     const id = Date.now().toString();
@@ -96,7 +101,11 @@ function App() {
       <main className="flex-1 relative overflow-y-auto overflow-x-hidden">
         <div className="container mx-auto max-w-3xl px-4">
           {activeTab === 'convert' && (
-            <ConvertTab onSave={handleSave} />
+            <ConvertTab 
+              onSave={handleSave} 
+              initialContent={unsavedConversion}
+              onContentChange={setUnsavedConversion}
+            />
           )}
           
           {activeTab === 'history' && (
