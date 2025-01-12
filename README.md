@@ -26,6 +26,29 @@ A Chrome extension that converts web pages to Markdown format so they can be dow
   - Full text labels on wider screens (>400px)
   - Compact icon-only interface on narrow screens (≤400px)
 
+## Requirements
+
+### System Requirements
+- Google Chrome (Version 88 or higher)
+- macOS, Windows, or Linux operating system
+- At least 100MB of free disk space
+- Active internet connection for web page conversion
+
+### Development Requirements
+- Node.js (v18.0.0 or higher)
+  ```bash
+  node --version  # Check Node.js version
+  ```
+- npm (v9.0.0 or higher)
+  ```bash
+  npm --version  # Check npm version
+  ```
+- Git (v2.30.0 or higher)
+  ```bash
+  git --version  # Check Git version
+  ```
+- Chrome DevTools knowledge for debugging
+
 ## Project Structure
 
 ```
@@ -53,27 +76,39 @@ doc-bot-chrome/
 
 ## Installation (Development)
 
-1. Clone this repository:
+1. Ensure all requirements are met (optional):
+   ```bash
+   node --version  # Should be ≥ 18.0.0
+   npm --version   # Should be ≥ 9.0.0
+   git --version   # Should be ≥ 2.30.0
+   ```
+
+2. Clone this repository:
    ```bash
    git clone https://github.com/Rajeev-SG/doc-bot-chrome.git
+   ```
 
+3. Navigate to project directory:
+   ```bash
    cd doc-bot-chrome
    ```
 
-2. Install dependencies:
+4. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Build the extension:
+5. Build the extension:
    ```bash
    npm run build
    ```
 
-4. Load in Chrome:
+6. Load in Chrome:
    - Open Chrome and go to `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked" and select the `doc-bot-chrome` directory
+   - Enable "Developer mode" in the top right corner
+   - Click "Load unpacked" in the top left corner
+   - Select the `doc-bot-chrome` directory
+   - The extension icon should appear in your Chrome toolbar
 
 ## Usage
 

@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "Chrome extension for converting web pages to markdown",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "test": "jest --config jest.config.cjs",
     "test:watch": "jest --watch --config jest.config.cjs",
