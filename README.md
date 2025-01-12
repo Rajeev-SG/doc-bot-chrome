@@ -55,7 +55,8 @@ doc-bot-chrome/
 
 1. Clone this repository:
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/Rajeev-SG/doc-bot-chrome
+
    cd doc-bot-chrome
    ```
 
