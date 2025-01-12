@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { type FC, useState } from 'react';
 import { FileDown, Eye, Pencil, Save } from 'lucide-react';
 import { MarkdownEntry } from '../types';
 
@@ -6,15 +6,52 @@ interface ConvertTabProps {
   onSave: (entry: Omit<MarkdownEntry, 'id' | 'timestamp'>) => void;
 }
 
-export function ConvertTab({ onSave }: ConvertTabProps) {
+interface ConversionResponse {
+  title: string;
+  content: string;
+  url: string;
+}
+
+declare global {
+  interface Window {
+    chrome: typeof chrome;
+  }
+}
+
+export const ConvertTab: FC<ConvertTabProps> = ({ onSave }) => {
   const [mode, setMode] = useState<'preview' | 'edit'>('preview');
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
+  const [isConverting, setIsConverting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Add sample data for testing
   const handleConvert = async () => {
-    setTitle('Sample Page');
-    setContent('# Sample Page\n\nThis is some sample markdown content.');
+    setIsConverting(true);
+    setError(null);
+
+    try {
+      // Get the current active tab
+      const [tab] = await window.chrome.tabs.query({ active: true, currentWindow: true });
+      
+      if (!tab?.id || !tab.url) {
+        throw new Error('No active tab found');
+      }
+
+      // Send message to background script
+      const response = await window.chrome.runtime.sendMessage({
+        type: 'convert_page',
+        tabId: tab.id,
+        url: tab.url
+      }) as ConversionResponse;
+
+      setTitle(response.title);
+      setContent(response.content);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to convert page');
+      console.error('Conversion error:', err);
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   const handleSave = () => {
@@ -25,7 +62,7 @@ export function ConvertTab({ onSave }: ConvertTabProps) {
     onSave({
       title,
       content,
-      url: 'https://example.com/sample',
+      url: window.location.href,
     });
     
     // Clear the form
@@ -39,10 +76,11 @@ export function ConvertTab({ onSave }: ConvertTabProps) {
         <div className="flex space-x-2">
           <button
             onClick={handleConvert}
-            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            disabled={isConverting}
+            className="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FileDown className="w-4 h-4" />
-            <span>Convert Page</span>
+            <span>{isConverting ? 'Converting...' : 'Convert Page'}</span>
           </button>
           <button
             onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
@@ -79,18 +117,22 @@ export function ConvertTab({ onSave }: ConvertTabProps) {
         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
       />
 
-      {mode === 'edit' ? (
+      {mode === 'preview' ? (
+        <div className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md overflow-auto prose prose-sm max-w-none">
+          <div className="whitespace-pre-wrap">{content}</div>
+        </div>
+      ) : (
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
           placeholder="Markdown content..."
+          className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
         />
-      ) : (
-        <div className="w-full h-[400px] px-3 py-2 border border-gray-300 rounded-md overflow-auto prose prose-sm max-w-none">
-          <pre className="whitespace-pre-wrap">{content}</pre>
-        </div>
+      )}
+
+      {error && (
+        <div className="text-red-500 text-sm">{error}</div>
       )}
     </div>
   );
-}
+};

@@ -43,17 +43,87 @@ Okay, you're right to push for a more robust and comprehensive plan. Let's incor
     *   `content.js` (in root directory)
     *   `/test/content.test.js`
 
-**Step 4: Front-End Integration (Convert Tab)**
+**Revised Step 4: Front-End Integration (Convert Tab) - Side Panel Approach**
 
-*   **Action:** Connect the `ConvertTab` UI to the markdown conversion logic.
-    *   **Cascade Prompt:**  "Modify the `front-end/src/components/ConvertTab.tsx` component to: 1) on the 'Convert Page' button click, send a message to the background script, 2) on the background response, update the content state with response, and the title state with the `window.location.href` of the converted page. 3) Connect the "Save" button on the popup to dispatch the `onSave` callback with title, content, and url."
+*   **Action:** Integrate `ConvertTab.tsx` into a side panel and enable basic functionality.
+    *   **Cascade Prompt:**
+        *   "Create a `sidepanel.html` file in the root directory that will serve as an entry point for our React app in the side panel. Include a `div` with the id of `root`."
+        *   "Create a `sidepanel.css` file in the root directory, to ensure proper styling of the side panel"
+        *   "Modify the `front-end/src/main.tsx` to mount our React app to the `div` element with the id of `root` in our `sidepanel.html`."
+        *  "Modify the `manifest.json` file to: 1) remove the `action.default_popup` key, 2) add a `"side_panel"` key that sets the `default_path` to `sidepanel.html`, and 3) add the `sidePanel` permission."
+        *   "Modify the `background.js` to: 1) listen for clicks on the extension action, 2) use `chrome.sidePanel.open()` to open the side panel on the current window."
+        *   "Modify the `front-end/src/components/ConvertTab.tsx` component to: 1) send a message to the background script when the 'Convert Page' button is clicked and use `chrome.runtime.sendMessage` for the communication, 2) add `useState` to update the content and title with the response from the background script, and 3) connect the 'Save' button on the popup to dispatch the `onSave` callback with the state information"
     *   **Verification:**
-        *   Open the popup, click "Convert Page," and verify that the markdown content and title is displayed in the text area and input box respectively.
-        *   Click the save button, verify that the `onSave` callback is properly called.
-        *    **Jest Test:** Create a test file `/test/convert-tab.test.js` using `react-testing-library`. Simulate the button click, mocking out `chrome.runtime.sendMessage`, to verify the message is correctly sent to the background, the title and content state is updated. Add another test for the save functionality, verifying that the `onSave` callback is called with the proper data.
+        *   Click the extension action icon. Verify that the side panel opens and renders the React app (you should see the ConvertTab UI).
+        *   Click the "Convert Page" button and verify that the content and title text areas update with the mock data and title.
+        *  Click the "Save" button and verify that the `onSave` callback is called with the correct mock data.
+        *   **Jest Test:**
+            *   Create a test file `/test/convert-tab.test.js` using `react-testing-library`.
+            *   Add a test that mounts the component and checks if all UI elements, like buttons and inputs, are rendered correctly.
+            *   Add a test that simulates a click event on the "Convert Page" button and verifies that it sends a message to the background script via `chrome.runtime.sendMessage`, using mock functions.
+            *   Add a test that simulates a click event on the "Save" button, and that verifies the `onSave` callback is called with the correct data, which contains the title, content and url.
 *   **Files:**
-    *   `front-end/src/components/ConvertTab.tsx`
-    *   `/test/convert-tab.test.js`
+    *   `manifest.json` (modified)
+    *   `background.js` (modified)
+    *   `sidepanel.html` (new)
+    *   `sidepanel.css` (new)
+    *   `front-end/src/main.tsx` (modified)
+    *   `front-end/src/components/ConvertTab.tsx` (modified)
+    *   `/test/convert-tab.test.js` (new)
+
+**Step 4: Breakdown**
+
+To better understand the implementation, I will break it down into more granular steps that will be part of Step 4.
+
+**Step 4.1: Side Panel Setup**
+
+*   **Action:** Create the basic side panel structure and enable the side panel functionality.
+    *   **Cascade Prompt:**
+        *   "Create a `sidepanel.html` file in the root directory that will serve as an entry point for our React app in the side panel. Include a `div` with the id of `root`."
+        *    "Create a `sidepanel.css` file in the root directory, to ensure proper styling of the side panel"
+        *    "Modify the `manifest.json` file to: 1) remove the `action.default_popup` key, 2) add a `"side_panel"` key that sets the `default_path` to `sidepanel.html`, and 3) add the `sidePanel` permission."
+        *   "Modify the `background.js` to: 1) listen for clicks on the extension action, 2) use `chrome.sidePanel.open()` to open the side panel on the current window."
+    *   **Verification:**
+        *   Click the extension action icon. Verify that the side panel opens (it will be blank for now, but it should open)
+        *   **Jest Test:** Add an empty test file for now `/test/sidepanel.test.js` with a simple `test("sidepanel loads", () => {expect(true).toBe(true);});`)
+*   **Files:**
+    *   `manifest.json` (modified)
+    *   `background.js` (modified)
+     *   `sidepanel.html` (new)
+     *   `sidepanel.css` (new)
+     *   `/test/sidepanel.test.js` (new)
+
+**Step 4.2: React App Integration**
+
+*   **Action:** Integrate the react app into the side panel and verify that it loads correctly.
+    *   **Cascade Prompt:**
+        *   "Modify the `front-end/src/main.tsx` to mount our React app to the `div` element with the id of `root` in our `sidepanel.html`."
+    *   **Verification:**
+        *   Click the extension action icon. Verify that the side panel opens and renders our react app (you should see the `ConvertTab` UI).
+         *    **Jest Test:** Create a test file `/test/app-mount.test.js` using `react-testing-library`. Use a mock function in the chrome api calls so that the React app can be tested in isolation. Verify that the component is mounted in the `sidepanel.html` and it is correctly rendered.
+*   **Files:**
+      *   `front-end/src/main.tsx` (modified)
+     *  `/test/app-mount.test.js` (new)
+
+**Step 4.3: Convert Tab Communication**
+
+*   **Action:** Add communication between the `ConvertTab` component and the background script and verify functionality
+    *    **Cascade Prompt:**
+         *   "Modify the `front-end/src/components/ConvertTab.tsx` component to: 1) send a message to the background script when the 'Convert Page' button is clicked and use `chrome.runtime.sendMessage` for the communication, 2) add `useState` to update the content and title with the response from the background script. and 3) connect the 'Save' button on the popup to dispatch the `onSave` callback with the state information"
+    *    **Verification:**
+        *   Click the extension action icon. Verify that the side panel opens and renders the react app (`ConvertTab`).
+        *   Click the "Convert Page" button and verify that the content and title text areas update with the mock data and title.
+         * Click the "Save" button and verify that the `onSave` callback is called with the correct data.
+         *    **Jest Test:**
+             *   Modify the `/test/convert-tab.test.js` to:
+                  *  Add a test that simulates a click event on the "Convert Page" button and verifies that it sends a message to the background script via `chrome.runtime.sendMessage`, using mock functions.
+                  * Add a test that simulates a click event on the "Save" button, and that verifies the `onSave` callback is called with the correct data, which contains the title, content and url.
+*   **Files:**
+    *   `front-end/src/components/ConvertTab.tsx` (modified)
+    *   `/test/convert-tab.test.js` (modified)
+
+With this, the original plan is preserved, with an added level of granularity. We now have a clear step to add the side panel functionality, a clear step to mount the react app, and a clear step to add the messaging functionality. Ready to move forward with Step 4.1?
+
 
 **Step 5: Storage and History Management**
 

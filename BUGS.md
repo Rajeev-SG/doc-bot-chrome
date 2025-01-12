@@ -1,95 +1,85 @@
 # Known Issues and Future Improvements
 
-## Known Issues
+## Current Issues
 
-### Content Script Injection
-- [ ] Content script injection may fail on certain Chrome URLs (expected behavior due to Chrome security)
-- [ ] No visual feedback when content script is injected successfully
-- [ ] Content script injection state is not persisted across page reloads
+### Markdown Conversion
+- [ ] Basic text conversion instead of proper markdown formatting
+- [ ] No Jina API integration implemented yet
+- [ ] No progress indicator during conversion
+- [ ] Some formatting may be lost during conversion
 
-### Jina API Integration
-- [ ] Some websites may block the Jina Reader API request due to CORS
-- [ ] No progress indicator during markdown conversion
-- [ ] API errors may not be user-friendly
-- [ ] No retry mechanism for failed API requests
+### UI/UX Issues
+- [ ] Download functionality not working
+- [ ] No loading states for async operations
+- [ ] No error recovery UI for failed operations
+- [ ] Limited feedback for successful operations
 
-### Storage
-- [ ] Storage initialization only sets a basic flag
-- [ ] No error recovery mechanism if storage initialization fails
-- [ ] No cleanup mechanism for storage data
-- [ ] No way to view stored markdown without console
+### Storage and State Management
+- [ ] No data persistence across browser sessions
+- [ ] No data export functionality
+- [ ] No backup/restore functionality
+- [ ] No data migration strategy
 
 ## Workarounds
 
-### Content Script Injection Issues
-1. For restricted URLs:
-   - Check the browser console for injection status
-   - Retry injection by clicking the extension icon again
-   - Use the extension on permitted URLs only
+### Markdown Conversion Issues
+1. For basic conversion:
+   - Currently using simple text extraction
+   - Manual formatting may be required
+   - Consider copying content before conversion for backup
 
-2. For verification:
-   - Currently, check browser console for injection status
-   - Use background script console to verify conversion
+2. For missing Jina integration:
+   - Use manual markdown editing for better formatting
+   - Preview mode helps verify formatting
+   - Save frequently to avoid losing changes
 
-### Jina API Issues
-1. For CORS errors:
-   - Ensure the website allows external requests
-   - Try using the extension on public websites
-   - Check background script console for detailed error messages
+### UI/UX Issues
+1. For download functionality:
+   - Copy and paste content to a local file
+   - Use browser's save functionality where possible
+   - Consider using collections for organization
 
-2. For conversion issues:
-   - Verify the page is fully loaded before converting
-   - Check both consoles for error messages
-   - Try refreshing the page and converting again
+2. For async operations:
+   - Wait a few seconds for operations to complete
+   - Check the preview mode to verify changes
+   - Refresh the side panel if needed
 
 ### Storage Issues
-1. If initialization fails:
-   - Check browser console for error messages
-   - Clear extension storage and reload
-   - Reinstall extension if issues persist
+1. For data persistence:
+   - Save important conversions to local files
+   - Use collections to organize content
+   - Export important content manually
 
-## Planned Improvements
+## Future Improvements
 
-### Short-term (Next Release)
-- [ ] Add visual feedback for content script injection
-- [ ] Add progress indicator for conversion process
-- [ ] Implement storage cleanup mechanism
-- [ ] Add basic UI for viewing stored markdown
-- [ ] Improve error messages for API failures
+### High Priority
+1. Integrate Jina API for proper markdown conversion
+2. Implement download functionality
+3. Add loading states and better error handling
+4. Improve data persistence across sessions
 
-### Medium-term
-- [ ] Add popup UI for conversion status
-- [ ] Implement persistent content script state
-- [ ] Add storage data versioning
-- [ ] Add markdown preview functionality
-- [ ] Implement retry mechanism for API failures
+### Medium Priority
+1. Add data export/import functionality
+2. Implement backup/restore features
+3. Add batch operations for collections
+4. Improve preview rendering
 
-### Long-term
-- [ ] Add offline mode with cached conversions
-- [ ] Implement batch conversion feature
-- [ ] Add export functionality for stored markdown
-- [ ] Create comprehensive error logging system
+### Low Priority
+1. Add keyboard shortcuts
+2. Implement search functionality
+3. Add custom themes
+4. Support for different markdown flavors
 
-## Testing Status
+## Development Notes
 
-### Current Test Coverage
-- ✓ Background script initialization
-- ✓ Content script injection
-- ✓ Storage operations
-- ✓ Error handling scenarios
-- ✓ Basic API integration
+### Testing Gaps
+- Need integration tests for Chrome extension environment
+- Need end-to-end tests for user workflows
+- Need better error simulation in tests
+- Need tests for edge cases in storage operations
 
-### Known Test Limitations
-- Limited Chrome API mock coverage
-- No end-to-end testing
-- Manual testing required for actual API calls
-- No performance testing for large pages
-
-## Contributing
-
-Before submitting issues:
-1. Check both consoles for error messages
-2. Verify Chrome version compatibility
-3. Check if issue occurs in incognito mode
-4. Provide steps to reproduce the issue
-5. Include console output from both contexts
+### Documentation Needs
+- Add API documentation
+- Improve setup instructions
+- Add troubleshooting guide
+- Document test coverage

@@ -8,7 +8,7 @@ describe('Background Script', () => {
     chrome.storage.local.get.mockClear();
     chrome.storage.local.set.mockClear();
     chrome.action.onClicked.mockClear();
-    chrome.scripting.executeScript.mockClear();
+    chrome.sidePanel.open.mockClear();
 
     // Load the background script
     jest.isolateModules(() => {
@@ -60,92 +60,100 @@ describe('Background Script', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should handle content script injection errors', async () => {
+    it('should handle side panel opening errors', async () => {
       // Mock console.error to capture error messages
       const consoleSpy = jest.spyOn(console, 'error');
       
-      // Force executeScript to fail
-      chrome.scripting.executeScript.mockImplementationOnce(() => 
-        Promise.reject(new Error('Injection error'))
+      // Force sidePanel.open to fail
+      chrome.sidePanel.open.mockImplementationOnce(() => 
+        Promise.reject(new Error('Side panel error'))
       );
 
       // Simulate clicking the extension icon
-      const tab = { id: 1 };
+      const tab = { id: 1, windowId: 1 };
       await chrome.action.onClicked.trigger(tab);
 
       // Verify error was logged
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to inject content script:',
+        'Failed to open side panel:',
         expect.any(Error)
       );
 
       consoleSpy.mockRestore();
     });
 
-    it('should handle invalid tab gracefully', async () => {
+    it('should handle invalid window ID gracefully', async () => {
       // Mock console.error to capture error messages
       const consoleSpy = jest.spyOn(console, 'error');
       
-      // Simulate clicking the extension icon with invalid tab
-      const invalidTab = { id: null };
+      // Simulate clicking the extension icon with invalid window ID
+      const invalidTab = { id: 1, windowId: null };
       await chrome.action.onClicked.trigger(invalidTab);
 
       // Verify error was logged
       expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to inject content script:',
-        expect.objectContaining({
-          message: 'No valid tab found'
-        })
-      );
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should handle empty injection results gracefully', async () => {
-      // Mock console.error to capture error messages
-      const consoleSpy = jest.spyOn(console, 'error');
-      
-      // Mock executeScript to return empty results
-      chrome.scripting.executeScript.mockImplementationOnce(() => 
-        Promise.resolve([])
-      );
-
-      // Simulate clicking the extension icon
-      const tab = { id: 1 };
-      await chrome.action.onClicked.trigger(tab);
-
-      // Verify error was logged
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to inject content script:',
-        expect.objectContaining({
-          message: 'Content script injection failed'
-        })
+        'Failed to open side panel:',
+        expect.any(Error)
       );
 
       consoleSpy.mockRestore();
     });
   });
 
-  it('should successfully inject content script', async () => {
+  it('should successfully open side panel', async () => {
     // Mock console.log to capture success message
     const consoleSpy = jest.spyOn(console, 'log');
     
-    // Mock successful script injection
-    chrome.scripting.executeScript.mockImplementationOnce(() => 
-      Promise.resolve([{ result: true }])
-    );
-
     // Simulate clicking the extension icon
-    const tab = { id: 1 };
+    const tab = { id: 1, windowId: 1 };
     await chrome.action.onClicked.trigger(tab);
 
     // Verify success was logged
-    expect(consoleSpy).toHaveBeenCalledWith('Content script injected successfully');
-    expect(chrome.scripting.executeScript).toHaveBeenCalledWith({
-      target: { tabId: 1 },
-      files: ['content.js']
+    expect(consoleSpy).toHaveBeenCalledWith('Side panel opened successfully');
+    expect(chrome.sidePanel.open).toHaveBeenCalledWith({
+      windowId: 1
     });
 
     consoleSpy.mockRestore();
+  });
+
+  describe('Message Handling', () => {
+    it('should handle markdown messages', async () => {
+      const consoleSpy = jest.spyOn(console, 'log');
+      const url = 'https://example.com';
+      const content = '# Test Content';
+
+      // Send a markdown message
+      chrome.runtime.onMessage.callListeners(
+        { type: 'markdown', url, content },
+        { tab: { id: 1 } },
+        () => {}
+      );
+
+      // Verify storage was updated
+      const storedData = await chrome.storage.local.get(url);
+      expect(storedData[url]).toEqual({
+        timestamp: expect.any(Number),
+        content
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith('Markdown stored successfully for:', url);
+      consoleSpy.mockRestore();
+    });
+
+    it('should handle error messages', () => {
+      const consoleSpy = jest.spyOn(console, 'error');
+      const error = new Error('Test error');
+
+      // Send an error message
+      chrome.runtime.onMessage.callListeners(
+        { type: 'error', error },
+        { tab: { id: 1 } },
+        () => {}
+      );
+
+      expect(consoleSpy).toHaveBeenCalledWith('Error from content script:', error);
+      consoleSpy.mockRestore();
+    });
   });
 });

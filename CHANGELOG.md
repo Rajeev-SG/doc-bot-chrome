@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-01-12
+
+### Added
+- Side panel interface for better user experience
+- Basic page to markdown conversion (without Jina API)
+- Edit/Preview toggle functionality
+- History view for past conversions
+- Collections feature for organizing content
+- Delete functionality for removing entries
+- Save functionality for storing conversions
+
+### Changed
+- Switched to side panel from popup UI
+- Updated build configuration for better asset handling
+- Improved React component organization
+- Enhanced error handling in background script
+
+### Removed
+- Jina API integration (temporarily)
+- Content script injection (replaced with direct scripting)
+
+### Known Issues
+- Download functionality not working
+- Basic text conversion instead of proper markdown formatting
+- Missing Jina API integration
+
 ## [0.3.0] - 2025-01-11
 
 ### Added
@@ -90,6 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Patch version: Bug fixes and minor improvements
 
 ### Version Notes
+- 0.4.0: Added side panel interface and basic conversion functionality
 - 0.3.0: Added Jina Reader API integration
 - 0.2.0: Added core functionality (content script, storage, tests)
 - 0.1.0: Initial project setup and configuration

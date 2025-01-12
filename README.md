@@ -1,34 +1,40 @@
 # doc-bot-chrome
 
-A Chrome extension that converts web pages to Markdown format using the Jina Reader API, with storage capabilities for managing converted content.
+A Chrome extension that converts web pages to Markdown format, with storage capabilities for managing converted content.
 
-## Current Implementation Status
+## Features
 
-- Basic extension structure set up
-- Chrome extension manifest (v3) configured
-- Extension icons created
-- Content script injection with error handling
-- Background script with storage initialization
-- Jina Reader API integration for Markdown conversion
-- Comprehensive test suite for core functionality
+### Working Features
+- Page Conversion: Convert any web page to markdown format
+- Save/Edit: Save converted content and edit it later
+- Preview Mode: Toggle between edit and preview modes
+- History: View and manage previously converted pages
+- Collections: Organize your converted content
+- Delete: Remove unwanted conversions
+- Side Panel Interface: Convenient access through Chrome's side panel
+
+### Known Issues
+- Jina API Integration: Currently using basic text conversion instead of Jina's markdown formatting
+- Download: Download functionality is not working
 
 ## Project Structure
 
 ```
 doc-bot-chrome/
-├── manifest.json           # Chrome extension manifest
-├── background.js          # Background service worker
-├── content.js            # Content script for Jina API integration
-├── test/                 # Test files
-│   ├── setup.js         # Test environment setup
-│   ├── background.test.js # Background script tests
-│   └── manifest.test.js  # Manifest validation tests
-├── front-end/
-│   └── icons/           # Extension icons
-│       ├── icon16.png   # Small icon
-│       ├── icon48.png   # Medium icon
-│       └── icon128.png  # Large icon
-└── docs/                # Documentation and development plans
+├── manifest.json          # Chrome extension manifest
+├── background.js         # Background service worker
+├── vite.config.ts       # Vite build configuration
+├── front-end/           # React application
+│   ├── src/            # Source code
+│   │   ├── components/ # React components
+│   │   ├── types/     # TypeScript types
+│   │   ├── App.tsx    # Main application
+│   │   └── main.tsx   # Entry point
+│   ├── icons/         # Extension icons
+│   └── sidepanel.html # Side panel entry point
+├── dist/               # Built extension
+├── test/              # Test files
+└── docs/              # Documentation
 ```
 
 ## Installation (Development)
@@ -44,73 +50,43 @@ doc-bot-chrome/
    npm install
    ```
 
-3. Run tests:
+3. Build the extension:
    ```bash
-   npm test
+   npm run build
    ```
 
-4. Load the extension in Chrome:
-   - Open Chrome and navigate to `chrome://extensions/`
-   - Enable "Developer mode" in the top right
+4. Load in Chrome:
+   - Open Chrome and go to `chrome://extensions/`
+   - Enable "Developer mode"
    - Click "Load unpacked"
    - Select the `doc-bot-chrome` directory
 
 ## Usage
 
-1. Click the extension icon in your Chrome toolbar to convert the current page
-2. The extension will:
-   - Inject the content script
-   - Send the current URL to Jina Reader API
-   - Convert the page to Markdown format
-   - Store the converted content locally
+1. Click the extension icon in Chrome's toolbar to open the side panel
+2. Navigate to any web page you want to convert
+3. Click "Convert Page" in the side panel
+4. The page will be converted to markdown format
+5. You can:
+   - Edit the content in markdown format
+   - Preview the rendered markdown
+   - Save the content
+   - Organize content into collections
+   - View conversion history
+   - Delete unwanted conversions
 
-3. View the results:
-   - Open the background script console (see below) to view the converted markdown
-   - Converted content is automatically saved in extension storage
+## Development
 
-### Viewing Debug Output
+- Run tests:
+  ```bash
+  npm test
+  ```
 
-To see the conversion results and debug information:
-
-1. Content Script Console (webpage console):
-   - Right-click page → Inspect → Console
-   - Shows content script injection and API request status
-
-2. Background Script Console (extension console):
-   - Go to chrome://extensions
-   - Find "Markdown Converter"
-   - Click "service worker" under "Inspect views"
-   - Shows conversion results and storage status
-
-## Features
-
-- Webpage to Markdown conversion using Jina Reader API
-- Automatic content script injection
-- Local storage of converted content
-- Error handling for API requests
-- Debug logging in both content and background contexts
-
-## Testing
-
-The project includes a comprehensive test suite:
-- Background script tests (initialization, error handling)
-- Content script injection tests
-- Chrome API mock implementation
-- Storage operation tests
-
-Run tests with:
-```bash
-npm test
-```
+- Build for production:
+  ```bash
+  npm run build
+  ```
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
-## License
-
-[License Information]
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.

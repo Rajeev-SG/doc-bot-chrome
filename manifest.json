@@ -6,15 +6,26 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "sidePanel"
   ],
   "host_permissions": [
     "https://r.jina.ai/*"
   ],
+  "action": {
+    "default_title": "Convert to Markdown",
+    "default_icon": {
+      "16": "front-end/icons/icon16.png",
+      "48": "front-end/icons/icon48.png",
+      "128": "front-end/icons/icon128.png"
+    }
+  },
   "background": {
     "service_worker": "background.js"
   },
-  "action": {},
+  "side_panel": {
+    "default_path": "dist/sidepanel.html"
+  },
   "icons": {
     "16": "front-end/icons/icon16.png",
     "48": "front-end/icons/icon48.png",
